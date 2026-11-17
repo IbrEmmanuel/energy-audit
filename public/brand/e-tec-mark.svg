@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" role="img" aria-label="E-TEC">
+  <title>E-TEC</title>
+  <rect width="64" height="64" rx="14" fill="#C4A35A"/>
+  <path d="M18 14h28v9H29v8h14v8H29v11h19v9H18V14Z" fill="#0C1116"/>
+  <path d="M42 33 33 48h9l-2.5 11L52 41h-9l2.5-8H42Z" fill="#F4F0E6"/>
+</svg>

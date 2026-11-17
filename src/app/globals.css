@@ -881,6 +881,13 @@ a {
   color: #fff;
 }
 
+.tt-brand-lockup {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.45rem;
+}
+
 .tt-brand-logo {
   display: block;
   height: auto;
@@ -889,15 +896,24 @@ a {
 }
 
 .tt-brand-logo-login {
-  width: 11.5rem;
+  width: 13.5rem;
 }
 
 .tt-brand-logo-sidebar {
-  width: 9.4rem;
+  width: 10.25rem;
 }
 
 .tt-brand-logo-topbar {
-  width: 7.2rem;
+  width: 8.5rem;
+}
+
+.tt-brand-tagline {
+  font-family: var(--font-plex-mono), ui-monospace, monospace;
+  font-size: 0.62rem;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--login-gold, #c4a35a);
 }
 
 .sr-only {
@@ -1046,7 +1062,7 @@ a {
   }
 
   .tt-brand-logo-login {
-    width: 10.25rem;
+    width: 12rem;
   }
 }
 
