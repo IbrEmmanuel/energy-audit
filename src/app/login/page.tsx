@@ -1,7 +1,9 @@
 import Image from "next/image";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
+import { getLiveActivityFeed } from "@/lib/activity";
 import { SignInButton } from "@/components/sign-in-button";
+import { LoginLiveActivity } from "@/components/login-live-activity";
 
 export const dynamic = "force-dynamic";
 
@@ -37,6 +39,8 @@ export default async function LoginPage({ searchParams }: Props) {
             ? `Sign-in failed (${params.error}). Try again.`
             : null;
 
+  const live = await getLiveActivityFeed(14);
+
   return (
     <main className="tt-login">
       <div className="tt-login-media" aria-hidden>
@@ -51,7 +55,7 @@ export default async function LoginPage({ searchParams }: Props) {
         <div className="tt-login-shade" />
       </div>
 
-      <div className="tt-login-frame">
+      <div className="tt-login-frame tt-login-frame-split">
         <div className="tt-login-panel">
           <p className="tt-login-kicker">Staff access</p>
           <h1 className="tt-login-brand">E-tech</h1>
@@ -65,12 +69,16 @@ export default async function LoginPage({ searchParams }: Props) {
 
           <div className="tt-login-actions">
             <SignInButton callbackUrl={callbackUrl} />
-            <p className="tt-login-foot">Authorized Google accounts only</p>
+            <p className="tt-login-foot">
+              Authorized Google accounts only · sign-in tracks live dashboard activity
+            </p>
             <a className="tt-login-reset" href="/login/reset">
               Clear login cookies
             </a>
           </div>
         </div>
+
+        <LoginLiveActivity initial={live} />
       </div>
     </main>
   );

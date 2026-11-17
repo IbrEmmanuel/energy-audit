@@ -20,6 +20,11 @@ export function SignInButton({
       disabled={busy}
       onClick={() => {
         setBusy(true);
+        void fetch("/api/activity/login-track", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ phase: "start" }),
+        }).catch(() => undefined);
         void signIn("google", { callbackUrl });
       }}
       className={variant === "premium" ? "tt-btn-google tt-btn-google-premium" : "tt-btn-google"}

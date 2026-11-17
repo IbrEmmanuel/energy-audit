@@ -2,6 +2,8 @@ import { prisma } from "./prisma";
 
 export const ACTIVITY_TYPES = [
   "login",
+  "login_view",
+  "login_start",
   "proposal_create",
   "proposal_save",
   "proposal_delete",
@@ -202,6 +204,10 @@ export function activityLabel(type: string) {
   switch (type) {
     case "login":
       return "User login";
+    case "login_view":
+      return "Login page open";
+    case "login_start":
+      return "Google sign-in started";
     case "proposal_create":
       return "Proposal created";
     case "proposal_save":
@@ -215,4 +221,47 @@ export function activityLabel(type: string) {
     default:
       return type;
   }
+}
+
+function maskEmail(email: string | null | undefined) {
+  if (!email) return "Staff";
+  const [user, domain] = email.split("@");
+  if (!domain) return "Staff";
+  const visible = user.slice(0, 2) || "u";
+  return `${visible}***@${domain}`;
+}
+
+/** Public live feed for login page + dashboard pulse (emails masked). */
+export async function getLiveActivityFeed(limit = 12) {
+  const events = await prisma.activityEvent.findMany({
+    orderBy: { createdAt: "desc" },
+    take: Math.min(40, Math.max(4, limit)),
+  });
+
+  const today = rangeToDates("today");
+  const [loginsToday, activitiesToday] = await Promise.all([
+    prisma.activityEvent.count({
+      where: {
+        type: "login",
+        createdAt: { gte: today.start, lte: today.end },
+      },
+    }),
+    prisma.activityEvent.count({
+      where: { createdAt: { gte: today.start, lte: today.end } },
+    }),
+  ]);
+
+  return {
+    generatedAt: new Date().toISOString(),
+    loginsToday,
+    activitiesToday,
+    recent: events.map((e) => ({
+      id: e.id,
+      type: e.type,
+      label: activityLabel(e.type),
+      detail: e.label,
+      actor: maskEmail(e.email),
+      createdAt: e.createdAt.toISOString(),
+    })),
+  };
 }
