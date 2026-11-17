@@ -759,63 +759,31 @@ a {
 
 .tt-login {
   --login-ink: #f3efe6;
-  --login-muted: rgba(243, 239, 230, 0.62);
-  --login-line: rgba(243, 239, 230, 0.12);
+  --login-muted: rgba(243, 239, 230, 0.68);
   --login-gold: #c4a35a;
-  --login-rail: #0c1116;
   position: relative;
   isolation: isolate;
   display: grid;
-  grid-template-columns: minmax(20rem, 26.5rem) minmax(0, 1fr);
+  place-items: center;
   min-height: 100svh;
   min-height: 100dvh;
-  background: var(--login-rail);
+  overflow: hidden;
+  background: #0c1116;
   color: var(--login-ink);
   -webkit-tap-highlight-color: transparent;
 }
 
-.tt-login-rail {
-  position: relative;
-  z-index: 2;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 1.75rem;
-  min-height: 100svh;
-  min-height: 100dvh;
-  padding:
-    calc(1.35rem + var(--safe-top))
-    1.5rem
-    calc(1.25rem + var(--safe-bottom));
-  background:
-    linear-gradient(180deg, #10161d 0%, var(--login-rail) 42%, #090d11 100%);
-  border-right: 1px solid rgba(196, 163, 90, 0.18);
-}
-
-.tt-login-rail-top {
-  display: flex;
-  align-items: center;
-}
-
-.tt-login-rail-body {
-  display: flex;
-  flex-direction: column;
-  gap: 0.7rem;
-  max-width: 22rem;
-  animation: tt-login-rise 0.45s ease-out both;
-}
-
 .tt-login-stage {
-  position: relative;
-  min-height: 100svh;
-  min-height: 100dvh;
+  position: absolute;
+  inset: 0;
+  z-index: 0;
   overflow: hidden;
   background: #152029;
 }
 
 .tt-login-photo {
   object-fit: cover;
-  object-position: 58% 42%;
+  object-position: 55% 42%;
   transform: scale(1.04);
   animation: tt-login-ken 28s ease-out forwards;
 }
@@ -824,37 +792,29 @@ a {
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(90deg, rgba(9, 13, 17, 0.55) 0%, rgba(9, 13, 17, 0.12) 34%, rgba(9, 13, 17, 0.2) 100%),
-    linear-gradient(180deg, rgba(9, 13, 17, 0.15) 0%, rgba(9, 13, 17, 0.55) 100%);
+    radial-gradient(ellipse 70% 55% at 50% 48%, rgba(9, 13, 17, 0.28) 0%, rgba(9, 13, 17, 0.78) 72%),
+    linear-gradient(180deg, rgba(9, 13, 17, 0.45) 0%, rgba(9, 13, 17, 0.72) 100%);
 }
 
-.tt-login-stage-caption {
-  position: absolute;
-  left: 1.5rem;
-  right: 1.5rem;
-  bottom: calc(1.25rem + var(--safe-bottom));
+.tt-login-center {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 26rem);
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
-  z-index: 1;
-  pointer-events: none;
-}
-
-.tt-login-stage-caption span:first-child {
-  font-family: var(--font-plex-mono), ui-monospace, monospace;
-  font-size: 0.72rem;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--login-gold);
-}
-
-.tt-login-stage-caption span:last-child {
-  font-size: 0.9rem;
-  color: rgba(243, 239, 230, 0.78);
+  align-items: center;
+  text-align: center;
+  gap: 0.7rem;
+  padding:
+    calc(1.5rem + var(--safe-top))
+    max(1.15rem, env(safe-area-inset-right, 0px), var(--page-x))
+    calc(1.5rem + var(--safe-bottom))
+    max(1.15rem, env(safe-area-inset-left, 0px), var(--page-x));
+  animation: tt-login-rise 0.45s ease-out both;
 }
 
 .tt-login-kicker {
-  margin: 0;
+  margin: 0.15rem 0 0;
   font-family: var(--font-plex-mono), ui-monospace, monospace;
   font-size: 0.68rem;
   font-weight: 500;
@@ -865,7 +825,7 @@ a {
 
 .tt-login-title {
   margin: 0;
-  font-size: clamp(1.85rem, 3.4vw, 2.35rem);
+  font-size: clamp(1.9rem, 5vw, 2.45rem);
   font-weight: 600;
   letter-spacing: -0.035em;
   line-height: 1.08;
@@ -884,8 +844,13 @@ a {
 .tt-brand-lockup {
   display: inline-flex;
   flex-direction: column;
-  align-items: flex-start;
+  align-items: center;
   gap: 0.45rem;
+}
+
+.tt-brand-lockup-sidebar,
+.tt-brand-lockup-topbar {
+  align-items: flex-start;
 }
 
 .tt-brand-logo {
@@ -896,7 +861,8 @@ a {
 }
 
 .tt-brand-logo-login {
-  width: 13.5rem;
+  width: min(100%, 14.5rem);
+  margin-inline: auto;
 }
 
 .tt-brand-logo-sidebar {
@@ -929,9 +895,9 @@ a {
 }
 
 .tt-login-line {
-  margin: 0 0 0.35rem;
-  max-width: 21rem;
-  font-size: 0.92rem;
+  margin: 0 auto 0.2rem;
+  max-width: 22rem;
+  font-size: 0.94rem;
   line-height: 1.45;
   color: var(--login-muted);
 }
@@ -939,16 +905,16 @@ a {
 .tt-login-actions {
   display: flex;
   flex-direction: column;
-  align-items: stretch;
-  gap: 0.55rem;
-  margin-top: 0.35rem;
-  width: 100%;
+  align-items: center;
+  gap: 0.6rem;
+  margin-top: 0.55rem;
+  width: min(100%, 20rem);
 }
 
 .tt-login-foot {
   margin: 0;
   font-size: 0.72rem;
-  color: rgba(243, 239, 230, 0.45);
+  color: rgba(243, 239, 230, 0.48);
 }
 
 .tt-btn-google {
@@ -1032,43 +998,19 @@ a {
   }
 }
 
-@media (max-width: 959px) {
-  .tt-login {
-    grid-template-columns: 1fr;
-  }
-
-  .tt-login-stage {
-    position: absolute;
-    inset: 0;
-    z-index: 0;
-    min-height: 100%;
-  }
-
-  .tt-login-rail {
-    z-index: 1;
-    background:
-      linear-gradient(
-        180deg,
-        rgba(9, 13, 17, 0.72) 0%,
-        rgba(9, 13, 17, 0.88) 38%,
-        rgba(9, 13, 17, 0.96) 100%
-      );
-    border-right: 0;
-    justify-content: flex-end;
-  }
-
-  .tt-login-stage-caption {
-    display: none;
-  }
-
+@media (max-width: 640px) {
   .tt-brand-logo-login {
-    width: 12rem;
+    width: min(100%, 12.5rem);
+  }
+
+  .tt-login-center {
+    gap: 0.6rem;
   }
 }
 
 @media (max-height: 560px) and (orientation: landscape) {
-  .tt-login-rail {
-    gap: 0.75rem;
+  .tt-login-center {
+    gap: 0.45rem;
     padding-block: calc(0.7rem + var(--safe-top)) calc(0.7rem + var(--safe-bottom));
   }
 
@@ -1078,7 +1020,7 @@ a {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .tt-login-rail-body,
+  .tt-login-center,
   .tt-login-photo {
     animation: none;
   }

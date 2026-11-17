@@ -39,46 +39,37 @@ export default async function LoginPage({ searchParams }: Props) {
 
   return (
     <main className="tt-login">
-      <section className="tt-login-rail">
-        <header className="tt-login-rail-top">
-          <BrandLogo variant="login" priority />
-        </header>
-
-        <div className="tt-login-rail-body">
-          <p className="tt-login-kicker">Proposal system</p>
-          <h1 className="tt-login-title">Sign in to continue</h1>
-          <p className="tt-login-line">
-            Staff workspace for energy audits, system design, quotations, and sheet sync.
-          </p>
-
-          {errorMessage ? (
-            <div className="tt-alert tt-alert-on-dark" role="alert">
-              {errorMessage}
-            </div>
-          ) : null}
-
-          <div className="tt-login-actions">
-            <SignInButton variant="premium" callbackUrl={callbackUrl} />
-            <p className="tt-login-foot">Google accounts granted by the master only</p>
-          </div>
-        </div>
-      </section>
-
-      <aside className="tt-login-stage" aria-hidden>
+      <div className="tt-login-stage" aria-hidden>
         <Image
           src="/images/hero-solar-v2.jpg"
           alt=""
           fill
           priority
-          sizes="(max-width: 960px) 100vw, 62vw"
+          sizes="100vw"
           className="tt-login-photo"
         />
         <div className="tt-login-shade" />
-        <div className="tt-login-stage-caption">
-          <span>E-TEC</span>
-          <span>Electrical · Solar · Automation · Energy</span>
+      </div>
+
+      <section className="tt-login-center">
+        <BrandLogo variant="login" priority />
+        <p className="tt-login-kicker">Proposal system</p>
+        <h1 className="tt-login-title">Sign in to continue</h1>
+        <p className="tt-login-line">
+          Staff workspace for energy audits, system design, quotations, and sheet sync.
+        </p>
+
+        {errorMessage ? (
+          <div className="tt-alert tt-alert-on-dark" role="alert">
+            {errorMessage}
+          </div>
+        ) : null}
+
+        <div className="tt-login-actions">
+          <SignInButton variant="premium" callbackUrl={callbackUrl} />
+          <p className="tt-login-foot">Google accounts granted by the master only</p>
         </div>
-      </aside>
+      </section>
     </main>
   );
 }
