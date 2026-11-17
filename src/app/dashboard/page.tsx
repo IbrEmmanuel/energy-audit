@@ -1,12 +1,10 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { getDashboardStats, type DateRangeKey } from "@/lib/activity";
 import { getSheetHubSummary } from "@/lib/dashboard";
 import { isMasterEmail } from "@/lib/access";
-import { AppHeader } from "@/components/app-header";
+import { AppShell } from "@/components/app-shell";
 import { DashboardView } from "@/components/dashboard-view";
-import { MobileNav } from "@/components/mobile-nav";
 
 export const dynamic = "force-dynamic";
 
@@ -32,22 +30,14 @@ export default async function DashboardPage({ searchParams }: Props) {
   ]);
 
   return (
-    <div className="tt-shell tt-shell-nav">
-      <AppHeader
-        email={session.user.email}
-        active="dashboard"
-        actions={
-          master ? (
-            <Link href="/access" className="tt-btn tt-btn-ghost on-dark tt-desktop-only-inline">
-              Access
-            </Link>
-          ) : null
-        }
-      />
-      <main className="tt-page tt-page-wide">
-        <DashboardView stats={stats} hub={hub} />
-      </main>
-      <MobileNav active="dashboard" showAccess={master} />
-    </div>
+    <AppShell
+      email={session.user.email}
+      name={session.user.name}
+      active="dashboard"
+      showAccess={master}
+      wide
+    >
+      <DashboardView stats={stats} hub={hub} userName={session.user.name} />
+    </AppShell>
   );
 }

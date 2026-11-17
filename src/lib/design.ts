@@ -1,4 +1,16 @@
-/** System Design & Sizing — matches E-tech sheet math (verified against live values). */
+/**
+ * Stand-alone / hybrid PV sizing per IEEE Std 1562 (array & battery sizing)
+ * and IEEE Std 1013 (battery capacity practice), with inverter surge margin
+ * aligned to common IEEE/IEC continuous + short-time overload practice.
+ *
+ * Energy path (IEEE 1562):
+ *   E_load (Wh/day) from audit Σ(P × qty × hours)
+ *   E_dc   = E_load / η_inv
+ *   C_Wh   = (E_dc × N_days) / (DoD × η_chg × f_temp)
+ *   C_Ah   = C_Wh / V_sys
+ *   P_array = E_dc / (PSH × η_mppt × f_derate × η_chg)
+ * Inverter continuous rating uses diversified simultaneous load (demand factor).
+ */
 
 export type DesignParams = {
   systemMode: string;
@@ -7,13 +19,15 @@ export type DesignParams = {
   peakSunHours: number;
   daysAutonomy: number;
   batteryType: string;
-  depthOfDischarge: number; // 0.8
-  inverterEfficiency: number; // 0.93
-  chargeEfficiency: number; // 0.95
-  mpptEfficiency: number; // 0.98
-  deratingFactor: number; // 0.8
-  panelWatts: number; // 550
-  batteryAh: number; // 100
+  depthOfDischarge: number; // IEEE usable fraction of nameplate
+  inverterEfficiency: number;
+  chargeEfficiency: number;
+  mpptEfficiency: number;
+  deratingFactor: number; // soiling, mismatch, wiring, aging (IEEE array derate)
+  panelWatts: number;
+  batteryAh: number;
+  /** IEEE 1013-style temperature correction (1.0 typical for LiFePO4 @ ~25°C). */
+  batteryTempFactor: number;
 };
 
 export type DesignResults = {
@@ -26,9 +40,10 @@ export type DesignResults = {
   panelCount: number;
   inverterMinWatts: number;
   diversifiedLoadW: number;
+  standard: "IEEE-1562/1013";
 };
 
-/** SYSTEM PERFORMANCE & DESIGN KPI SUMMARY — sheet card values */
+/** SYSTEM PERFORMANCE & DESIGN KPI SUMMARY */
 export type DesignKpi = {
   dailyEnergyKWh: number;
   totalLoadW: number;
@@ -47,6 +62,7 @@ export type DesignKpi = {
   depthOfDischarge: number;
   estimatedGenerationKWh: number;
   solarYieldPct: number;
+  standardLabel: string;
 };
 
 export const DEFAULT_DESIGN: DesignParams = {
@@ -63,33 +79,48 @@ export const DEFAULT_DESIGN: DesignParams = {
   deratingFactor: 0.8,
   panelWatts: 550,
   batteryAh: 100,
+  batteryTempFactor: 1.0,
 };
 
+/** Continuous → short-time overload margin for inverter selection. */
 export const SURGE_FACTOR = 1.25;
+
+export const DESIGN_STANDARD = "IEEE Std 1562 / IEEE Std 1013";
 
 export function computeDesign(
   dailyWh: number,
   diversifiedLoadW: number,
   params: DesignParams = DEFAULT_DESIGN,
 ): DesignResults {
-  const energyWithInverterLossWh = dailyWh / params.inverterEfficiency;
+  const p = { ...DEFAULT_DESIGN, ...params };
+  const etaInv = Math.max(0.5, Math.min(1, p.inverterEfficiency));
+  const etaChg = Math.max(0.5, Math.min(1, p.chargeEfficiency));
+  const etaMppt = Math.max(0.5, Math.min(1, p.mpptEfficiency));
+  const dod = Math.max(0.1, Math.min(1, p.depthOfDischarge));
+  const derate = Math.max(0.4, Math.min(1, p.deratingFactor));
+  const fTemp = Math.max(0.7, Math.min(1.3, p.batteryTempFactor || 1));
+  const psh = Math.max(0.5, p.peakSunHours);
+  const days = Math.max(0.25, p.daysAutonomy);
+  const vSys = Math.max(12, p.systemVoltage);
+  const batAh = Math.max(1, p.batteryAh);
+  const panelW = Math.max(50, p.panelWatts);
+
+  // IEEE 1562: refer AC daily energy to DC bus through inverter efficiency
+  const energyWithInverterLossWh = dailyWh / etaInv;
+
+  // IEEE 1013 / 1562 battery Wh then Ah at system bus voltage
   const grossBatteryWh =
-    (energyWithInverterLossWh * params.daysAutonomy) /
-    (params.depthOfDischarge * params.chargeEfficiency);
-  const requiredBatteryAh = grossBatteryWh / params.systemVoltage;
-  const batteryUnits = Math.max(1, Math.ceil(requiredBatteryAh / params.batteryAh));
+    (energyWithInverterLossWh * days) / (dod * etaChg * fTemp);
+  const requiredBatteryAh = grossBatteryWh / vSys;
+  const batteryUnits = Math.max(1, Math.ceil(requiredBatteryAh / batAh));
 
-  // Array sizing: E_inv / (PSH × η_cc × derate × η_bat) → 4,332 Wp / 8×550 for 14.4 kWh
+  // IEEE 1562 array: daily DC energy / (PSH × charge-controller & array derates)
   const requiredArrayWatts =
-    energyWithInverterLossWh /
-    (params.peakSunHours *
-      params.mpptEfficiency *
-      params.deratingFactor *
-      params.chargeEfficiency);
-  const panelCount = Math.max(1, Math.ceil(requiredArrayWatts / params.panelWatts));
+    energyWithInverterLossWh / (psh * etaMppt * derate * etaChg);
+  const panelCount = Math.max(1, Math.ceil(requiredArrayWatts / panelW));
 
-  // Inverter sized to diversified simultaneous load with margin
-  const inverterMinWatts = Math.ceil(diversifiedLoadW * SURGE_FACTOR);
+  // Inverter continuous from diversified simultaneous load + surge class
+  const inverterMinWatts = Math.ceil(Math.max(0, diversifiedLoadW) * SURGE_FACTOR);
 
   return {
     dailyWh,
@@ -101,42 +132,37 @@ export function computeDesign(
     panelCount,
     inverterMinWatts,
     diversifiedLoadW,
+    standard: "IEEE-1562/1013",
   };
 }
 
-/**
- * KPI cards from System Design & Sizing sheet.
- * Example (14.4 kWh / 1.2 kW load): 1.5 kVA·1.2 kW, 4.4 kWp, 24 kWh bank, ~14.6 kWh/day yield.
- */
 export function computeDesignKpi(
   results: DesignResults,
   params: DesignParams = DEFAULT_DESIGN,
 ): DesignKpi {
+  const p = { ...DEFAULT_DESIGN, ...params };
   const dailyEnergyKWh = results.dailyWh / 1000;
   const totalLoadW = results.diversifiedLoadW;
   const inverterContinuousKw = totalLoadW / 1000;
   const inverterSurgeKva = (totalLoadW * SURGE_FACTOR) / 1000;
 
-  const installedArrayWatts = results.panelCount * params.panelWatts;
+  const installedArrayWatts = results.panelCount * p.panelWatts;
   const arrayCapacityKwp = installedArrayWatts / 1000;
 
   const batteryStorageKWh =
-    (results.batteryUnits * params.systemVoltage * params.batteryAh) / 1000;
+    (results.batteryUnits * p.systemVoltage * p.batteryAh) / 1000;
 
-  // Sheet performance ratio ≈ derate × MPPT × charge × inverter (≈0.694 → ~101.6% yield)
+  // Estimated AC generation with IEEE-style performance ratio chain
   const performanceRatio =
-    params.deratingFactor *
-    params.mpptEfficiency *
-    params.chargeEfficiency *
-    params.inverterEfficiency;
+    p.deratingFactor * p.mpptEfficiency * p.chargeEfficiency * p.inverterEfficiency;
   const estimatedGenerationKWh =
-    (installedArrayWatts * params.peakSunHours * performanceRatio) / 1000;
+    (installedArrayWatts * p.peakSunHours * performanceRatio) / 1000;
   const solarYieldPct =
     dailyEnergyKWh > 0 ? (estimatedGenerationKWh / dailyEnergyKWh) * 100 : 0;
 
-  const chemistryLabel = params.batteryType.includes("LiFePO4")
+  const chemistryLabel = p.batteryType.includes("LiFePO4")
     ? "LiFePO4"
-    : params.batteryType;
+    : p.batteryType;
 
   return {
     dailyEnergyKWh,
@@ -146,16 +172,17 @@ export function computeDesignKpi(
     surgeFactor: SURGE_FACTOR,
     arrayCapacityKwp,
     panelCount: results.panelCount,
-    panelWatts: params.panelWatts,
+    panelWatts: p.panelWatts,
     batteryStorageKWh,
     storageRatingAh: results.requiredBatteryAh,
     batteryModules: results.batteryUnits,
-    systemVoltage: params.systemVoltage,
-    batteryAh: params.batteryAh,
+    systemVoltage: p.systemVoltage,
+    batteryAh: p.batteryAh,
     chemistryLabel,
-    depthOfDischarge: params.depthOfDischarge,
+    depthOfDischarge: p.depthOfDischarge,
     estimatedGenerationKWh,
     solarYieldPct,
+    standardLabel: DESIGN_STANDARD,
   };
 }
 
@@ -174,7 +201,7 @@ export type LiveKpiBundle = {
   computedAt: string;
 };
 
-/** Server + client single source for live System Design KPIs. */
+/** Server + client single source for live System Design KPIs (IEEE). */
 export function buildLiveKpiBundle(
   dailyWh: number,
   diversifiedLoadW: number,
@@ -192,11 +219,11 @@ export function buildLiveKpiBundle(
 }
 
 export function parseDesignParams(json: string | null | undefined): DesignParams {
-  if (!json) return DEFAULT_DESIGN;
+  if (!json) return { ...DEFAULT_DESIGN };
   try {
     return { ...DEFAULT_DESIGN, ...JSON.parse(json) };
   } catch {
-    return DEFAULT_DESIGN;
+    return { ...DEFAULT_DESIGN };
   }
 }
 
@@ -210,9 +237,9 @@ export function formatKpiSheetValues(kpi: DesignKpi) {
     dailyEnergy: formatKpiKWh(kpi.dailyEnergyKWh),
     dailyEnergyDetail: `Total Load: ${Math.round(kpi.totalLoadW).toLocaleString("en-US")} W`,
     inverter: `${kpi.inverterSurgeKva.toFixed(1)} kVA / ${kpi.inverterContinuousKw.toFixed(1)} kW`,
-    inverterDetail: `Surge Factor: ${kpi.surgeFactor} | Pure Sine`,
+    inverterDetail: `Surge ×${kpi.surgeFactor} | IEEE continuous+overload`,
     array: formatKpiKwp(kpi.arrayCapacityKwp),
-    arrayDetail: `${kpi.panelCount} × ${kpi.panelWatts}Wp Tier-1 Modules`,
+    arrayDetail: `${kpi.panelCount} × ${kpi.panelWatts}Wp | ${kpi.standardLabel}`,
     batteryStorage: storage,
     batteryStorageDetail: `Storage Rating: ${Math.round(kpi.storageRatingAh)} Ah`,
     batteryBank: `${kpi.batteryModules} Modules (${kpi.systemVoltage}V ${kpi.batteryAh}Ah)`,

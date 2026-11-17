@@ -6,8 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { DEFAULT_DESIGN } from "@/lib/design";
 import { isMasterEmail } from "@/lib/access";
 import { ProposalWorkspace } from "@/components/proposal-workspace";
-import { AppHeader } from "@/components/app-header";
-import { MobileNav } from "@/components/mobile-nav";
+import { AppShell, type ShellActive } from "@/components/app-shell";
 
 export const dynamic = "force-dynamic";
 
@@ -23,6 +22,11 @@ function nextProposalNo() {
   const day = String(d.getDate()).padStart(2, "0");
   const seq = String(Math.floor(Math.random() * 9000) + 1000);
   return `ET-${y}${m}${day}-${seq}`;
+}
+
+function shellActive(step?: string): ShellActive {
+  if (step === "audit" || step === "design" || step === "quote") return step;
+  return "audits";
 }
 
 export default async function AuditDetailPage({ params, searchParams }: Props) {
@@ -48,41 +52,44 @@ export default async function AuditDetailPage({ params, searchParams }: Props) {
   const master = isMasterEmail(session.user.email);
 
   return (
-    <div className="tt-shell tt-shell-nav">
-      <AppHeader email={session.user.email} active="audits" />
-      <main className="tt-page tt-page-wide">
-        <div className="tt-crumb">
-          <Link href="/dashboard">Dashboard</Link>
-          <span aria-hidden>/</span>
-          <Link href="/audits">Proposals</Link>
-        </div>
-        <ProposalWorkspace
-          initialStep={query.step}
-          initial={{
-            id: audit.id,
-            proposalNo: audit.proposalNo,
-            clientName: audit.clientName,
-            siteAddress: audit.siteAddress,
-            phone: audit.phone,
-            notes: audit.notes,
-            status: audit.status,
-            sheetSyncedAt: audit.sheetSyncedAt?.toISOString() ?? null,
-            sheetSyncError: audit.sheetSyncError,
-            designJson: audit.designJson,
-            rows: audit.rows.map((r) => ({
-              id: r.id,
-              name: r.name,
-              sheetRow: r.sheetRow,
-              quantity: r.quantity,
-              unitWatts: r.unitWatts,
-              dailyHours: r.dailyHours,
-              sortOrder: r.sortOrder,
-              isCustom: r.isCustom,
-            })),
-          }}
-        />
-      </main>
-      <MobileNav active="audits" showAccess={master} />
-    </div>
+    <AppShell
+      email={session.user.email}
+      name={session.user.name}
+      active={shellActive(query.step)}
+      showAccess={master}
+      wide
+    >
+      <div className="tt-crumb">
+        <Link href="/dashboard">Overview</Link>
+        <span aria-hidden>/</span>
+        <Link href="/audits">Proposals</Link>
+      </div>
+      <ProposalWorkspace
+        initialStep={query.step}
+        initial={{
+          id: audit.id,
+          proposalNo: audit.proposalNo,
+          clientName: audit.clientName,
+          siteAddress: audit.siteAddress,
+          phone: audit.phone,
+          notes: audit.notes,
+          status: audit.status,
+          demandFactor: audit.demandFactor,
+          sheetSyncedAt: audit.sheetSyncedAt?.toISOString() ?? null,
+          sheetSyncError: audit.sheetSyncError,
+          designJson: audit.designJson,
+          rows: audit.rows.map((r) => ({
+            id: r.id,
+            name: r.name,
+            sheetRow: r.sheetRow,
+            quantity: r.quantity,
+            unitWatts: r.unitWatts,
+            dailyHours: r.dailyHours,
+            sortOrder: r.sortOrder,
+            isCustom: r.isCustom,
+          })),
+        }}
+      />
+    </AppShell>
   );
 }

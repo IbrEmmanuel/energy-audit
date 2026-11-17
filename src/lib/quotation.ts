@@ -1,4 +1,5 @@
-import type { DesignResults } from "./design";
+import type { DesignParams, DesignResults } from "./design";
+import { DEFAULT_DESIGN } from "./design";
 
 export type QuoteLine = {
   sku: string;
@@ -15,12 +16,16 @@ export type QuotationResult = {
   contingency: number;
   total: number;
   currency: "NGN";
+  computedAt: string;
+  standard: "IEEE-1562/1013";
+  panelWatts: number;
+  inverterMinWatts: number;
 };
 
-/** Default NGN catalog — editable in UI; mirrors E-tech Quotation BOM categories */
+/** Live NGN catalog — quantities always follow IEEE design results in real time. */
 export const CATALOG_PRICES = {
-  panel550: 185000,
-  inverterHybrid: 1850000,
+  panelPerWp: 336, // ~₦185k / 550 Wp
+  inverterPerKw: 420000,
   battery100Ah: 950000,
   batteryRack: 85000,
   roofMount: 18000,
@@ -33,26 +38,40 @@ export const CATALOG_PRICES = {
   contingencyPct: 0.05,
 };
 
-export function buildQuotation(design: DesignResults): QuotationResult {
+/** @deprecated kept for older UI references — prefer panelPerWp */
+export const CATALOG_LEGACY = {
+  panel550: 185000,
+  inverterHybrid: 1850000,
+};
+
+export function buildQuotation(
+  design: DesignResults,
+  params: DesignParams = DEFAULT_DESIGN,
+): QuotationResult {
+  const p = { ...DEFAULT_DESIGN, ...params };
+  const panelWatts = Math.max(50, p.panelWatts);
+  const panelUnitPrice = Math.round(CATALOG_PRICES.panelPerWp * panelWatts);
   const inverterKw = Math.max(3, Math.ceil(design.inverterMinWatts / 1000));
+  const inverterUnitPrice = Math.round(CATALOG_PRICES.inverterPerKw * inverterKw);
+
   const lines: QuoteLine[] = [
     {
-      sku: "PV-550",
-      description: `Tier-1 Mono PERC Modules (${design.panelCount} × ${550} Wp)`,
+      sku: `PV-${panelWatts}`,
+      description: `Tier-1 Mono PERC Modules (${design.panelCount} × ${panelWatts} Wp)`,
       unit: "pcs",
       quantity: design.panelCount,
-      unitPrice: CATALOG_PRICES.panel550,
+      unitPrice: panelUnitPrice,
     },
     {
       sku: "INV-HYB",
-      description: `Hybrid Inverter Dual MPPT 48V (~${inverterKw} kW class)`,
+      description: `Hybrid Inverter Dual MPPT ${p.systemVoltage}V (~${inverterKw} kW · IEEE surge class)`,
       unit: "pcs",
       quantity: 1,
-      unitPrice: CATALOG_PRICES.inverterHybrid,
+      unitPrice: inverterUnitPrice,
     },
     {
       sku: "BAT-LFP",
-      description: `LiFePO4 Battery 100Ah 48V (${design.batteryUnits} units)`,
+      description: `LiFePO4 Battery ${p.batteryAh}Ah ${p.systemVoltage}V (${design.batteryUnits} units)`,
       unit: "pcs",
       quantity: design.batteryUnits,
       unitPrice: CATALOG_PRICES.battery100Ah,
@@ -75,7 +94,7 @@ export function buildQuotation(design: DesignResults): QuotationResult {
       sku: "DC-CAB",
       description: "Solar DC Cable (100m drum)",
       unit: "drum",
-      quantity: 2,
+      quantity: Math.max(1, Math.ceil(design.panelCount / 8)),
       unitPrice: CATALOG_PRICES.dcCable100m,
     },
     {
@@ -106,7 +125,18 @@ export function buildQuotation(design: DesignResults): QuotationResult {
   const contingency = Math.round(subtotal * CATALOG_PRICES.contingencyPct);
   const total = subtotal + installation + contingency;
 
-  return { lines, subtotal, installation, contingency, total, currency: "NGN" };
+  return {
+    lines,
+    subtotal,
+    installation,
+    contingency,
+    total,
+    currency: "NGN",
+    computedAt: new Date().toISOString(),
+    standard: "IEEE-1562/1013",
+    panelWatts,
+    inverterMinWatts: design.inverterMinWatts,
+  };
 }
 
 export function formatNaira(n: number) {

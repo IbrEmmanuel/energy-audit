@@ -1,15 +1,18 @@
 import { google } from "googleapis";
 import {
   ENERGY_AUDIT_TAB,
+  QUOTATION_TAB,
   SHEET_ID,
   SYSTEM_DESIGN_TAB,
 } from "./appliances";
 import {
+  DESIGN_STANDARD,
   formatKpiSheetValues,
   type DesignParams,
   type DesignResults,
   type DesignKpi,
 } from "./design";
+import { formatNaira, type QuotationResult } from "./quotation";
 
 export type SheetRowWrite = {
   sheetRow: number;
@@ -72,7 +75,7 @@ export async function syncSystemDesignKpiToSheet(
     `${n % 1 === 0 ? n.toFixed(0) : n.toFixed(1)} kWh`;
   const wp = (n: number) => `${Math.round(n).toLocaleString("en-US")} Wp`;
 
-  const status = `Architecture: ${params.systemMode} Solar System | Bus: ${params.systemVoltage}V DC | Solar Yield: ${params.peakSunHours} PSH | Design Status: Verified`;
+  const status = `Architecture: ${params.systemMode} | Bus: ${params.systemVoltage}V DC | PSH: ${params.peakSunHours} | ${DESIGN_STANDARD} | Live verified`;
 
   const data = [
     // Design parameters (Engineering Value column)
@@ -149,6 +152,50 @@ export async function syncSystemDesignKpiToSheet(
   });
 
   return { spreadsheetId: SHEET_ID, updated: data.length };
+}
+
+/** Live quotation BOM → Quotation tab (realtime IEEE design quantities). */
+export async function syncQuotationToSheet(
+  accessToken: string,
+  quote: QuotationResult,
+) {
+  const sheets = sheetsClient(accessToken);
+  const header = [
+    ["SKU", "Description", "Unit", "Qty", "Unit Price (NGN)", "Line Total (NGN)"],
+  ];
+  const body = quote.lines.map((l) => [
+    l.sku,
+    l.description,
+    l.unit,
+    l.quantity,
+    l.unitPrice,
+    l.quantity * l.unitPrice,
+  ]);
+  const footer = [
+    [],
+    ["", "Subtotal", "", "", "", quote.subtotal],
+    ["", "Installation", "", "", "", quote.installation],
+    ["", "Contingency", "", "", "", quote.contingency],
+    ["", "TOTAL", "", "", "", quote.total],
+    [],
+    [
+      "",
+      `Realtime IEEE quotation · ${quote.standard} · ${quote.computedAt}`,
+      "",
+      "",
+      "",
+      formatNaira(quote.total),
+    ],
+  ];
+
+  await sheets.spreadsheets.values.update({
+    spreadsheetId: SHEET_ID,
+    range: `'${QUOTATION_TAB}'!A1:F${header.length + body.length + footer.length}`,
+    valueInputOption: "USER_ENTERED",
+    requestBody: { values: [...header, ...body, ...footer] },
+  });
+
+  return { spreadsheetId: SHEET_ID, lines: quote.lines.length };
 }
 
 export async function readEnergyAuditQuantities(accessToken: string) {

@@ -18,7 +18,7 @@ export async function GET() {
   });
 
   const payload = audits.map((a) => {
-    const totals = computeTotals(a.rows);
+    const totals = computeTotals(a.rows, a.demandFactor);
     return {
       id: a.id,
       clientName: a.clientName,

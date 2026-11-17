@@ -8,8 +8,11 @@ import {
   type LiveKpiBundle,
 } from "./design";
 import { computeTotals } from "./calc";
+import { DEMAND_FACTOR } from "./appliances";
+import { buildQuotation } from "./quotation";
 import {
   syncEnergyAuditToSheet,
+  syncQuotationToSheet,
   syncSystemDesignKpiToSheet,
 } from "./google-sheets";
 
@@ -51,8 +54,9 @@ function nextProposalNo() {
 export function computeAuditLiveKpi(
   rows: { quantity: number; unitWatts: number; dailyHours: number }[],
   designJson?: string | null,
+  demandFactor = DEMAND_FACTOR,
 ): LiveKpiBundle {
-  const totals = computeTotals(rows);
+  const totals = computeTotals(rows, demandFactor);
   const params = parseDesignParams(designJson);
   return buildLiveKpiBundle(totals.dailyWh, totals.diversifiedWatts, params);
 }
@@ -110,7 +114,10 @@ export async function syncAuditToSheets(opts: {
     return { ok: false as const, error: "Missing Google access token" };
   }
 
-  const kpi = computeAuditLiveKpi(rows, designJson);
+  const audit = await prisma.audit.findUnique({ where: { id: auditId } });
+  const demandFactor = audit?.demandFactor ?? DEMAND_FACTOR;
+  const kpi = computeAuditLiveKpi(rows, designJson, demandFactor);
+  const quote = buildQuotation(kpi.results, kpi.params);
 
   try {
     await syncEnergyAuditToSheet(
@@ -122,17 +129,19 @@ export async function syncAuditToSheets(opts: {
       results: kpi.results,
       kpi: kpi.kpi,
     });
+    await syncQuotationToSheet(accessToken, quote);
 
     await prisma.audit.update({
       where: { id: auditId },
       data: {
         kpiJson: JSON.stringify(kpi),
+        quoteJson: JSON.stringify(quote),
         sheetSyncedAt: new Date(),
         sheetSyncError: null,
         status: "synced",
       },
     });
-    return { ok: true as const, kpi };
+    return { ok: true as const, kpi, quote };
   } catch (err) {
     const message = err instanceof Error ? err.message : "Sheet sync failed";
     await prisma.audit.update({

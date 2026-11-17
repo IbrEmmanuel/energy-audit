@@ -7,8 +7,7 @@ import {
   MASTER_EMAIL,
 } from "@/lib/access";
 import { AccessManager } from "@/components/access-manager";
-import { AppHeader } from "@/components/app-header";
-import { MobileNav } from "@/components/mobile-nav";
+import { AppShell } from "@/components/app-shell";
 
 export const dynamic = "force-dynamic";
 
@@ -20,39 +19,41 @@ export default async function AccessPage() {
   const emails = await listGrantedWithLoginStats();
 
   return (
-    <div className="tt-shell tt-shell-nav">
-      <AppHeader email={session.user.email} active="access" />
-      <main className="tt-page tt-page-narrow">
-        <div className="tt-crumb">
-          <Link href="/dashboard">Dashboard</Link>
-          <span aria-hidden>/</span>
-          <span>Access</span>
+    <AppShell
+      email={session.user.email}
+      name={session.user.name}
+      active="access"
+      showAccess
+      narrow
+    >
+      <div className="tt-crumb">
+        <Link href="/dashboard">Overview</Link>
+        <span aria-hidden>/</span>
+        <span>Access</span>
+      </div>
+      <div className="tt-toolbar">
+        <div>
+          <h1>Access control</h1>
+          <p className="tt-toolbar-break">Master: {MASTER_EMAIL}</p>
         </div>
-        <div className="tt-toolbar">
-          <div>
-            <h1>Access control</h1>
-            <p className="tt-toolbar-break">Master: {MASTER_EMAIL}</p>
-          </div>
-        </div>
-        <p className="tt-lede">
-          Grant Google access with company, phone, and address. Login counts are
-          calculated per email from live sign-in events.
-        </p>
-        <AccessManager
-          initial={emails.map((e) => ({
-            id: e.id,
-            email: e.email,
-            companyName: e.companyName,
-            phone: e.phone,
-            address: e.address,
-            grantedBy: e.grantedBy,
-            createdAt: e.createdAt.toISOString(),
-            loginCount: e.loginCount,
-            lastLoginAt: e.lastLoginAt,
-          }))}
-        />
-      </main>
-      <MobileNav active="access" showAccess />
-    </div>
+      </div>
+      <p className="tt-lede">
+        Grant Google access with company, phone, and address. Login counts are
+        calculated per email from live sign-in events.
+      </p>
+      <AccessManager
+        initial={emails.map((e) => ({
+          id: e.id,
+          email: e.email,
+          companyName: e.companyName,
+          phone: e.phone,
+          address: e.address,
+          grantedBy: e.grantedBy,
+          createdAt: e.createdAt.toISOString(),
+          loginCount: e.loginCount,
+          lastLoginAt: e.lastLoginAt,
+        }))}
+      />
+    </AppShell>
   );
 }

@@ -36,6 +36,7 @@ export type ProposalState = {
   phone: string | null;
   notes: string | null;
   status: string;
+  demandFactor: number;
   sheetSyncedAt: string | null;
   sheetSyncError: string | null;
   designJson: string | null;
@@ -74,14 +75,20 @@ export function ProposalWorkspace({
     parseDesignParams(initial.designJson),
   );
 
-  const totals = useMemo(() => computeTotals(proposal.rows), [proposal.rows]);
+  const totals = useMemo(
+    () => computeTotals(proposal.rows, proposal.demandFactor),
+    [proposal.rows, proposal.demandFactor],
+  );
   const live = useMemo(
     () => buildLiveKpiBundle(totals.dailyWh, totals.diversifiedWatts, design),
     [totals.dailyWh, totals.diversifiedWatts, design],
   );
   const designResults = live.results;
   const kpi = live.kpi;
-  const quote = useMemo(() => buildQuotation(designResults), [designResults]);
+  const quote = useMemo(
+    () => buildQuotation(designResults, design),
+    [designResults, design],
+  );
 
   const save = useCallback(
     async (syncSheet = true) => {
@@ -400,7 +407,7 @@ export function ProposalWorkspace({
                 </strong>
               </p>
               <p>
-                Diversified 80%{" "}
+                Diversified {Math.round(totals.demandFactor * 100)}%{" "}
                 <strong>
                   {formatWatts(totals.diversifiedWatts)} · {formatWh(totals.diversifiedWh)} ·{" "}
                   {formatKWh(totals.diversifiedKWh)}
@@ -419,12 +426,12 @@ export function ProposalWorkspace({
           <div className="tt-section-head">
             <h2>System Design & Sizing</h2>
             <p>
-              Live KPI · updates from Energy Audit · syncs sheet G4:I9 + B17:B26
+              IEEE 1562 / 1013 live sizing · syncs sheet G4:I9 + B17:B26
             </p>
           </div>
 
           <p className="mb-2 text-[0.72rem] font-semibold uppercase tracking-[0.04em] text-[var(--muted)]">
-            System performance & design KPI summary · live
+            {kpi.standardLabel} · live KPI
           </p>
 
           <div className="tt-kpi-strip" data-live="true">
@@ -561,7 +568,9 @@ export function ProposalWorkspace({
         <section>
           <div className="tt-section-head">
             <h2>Quotation</h2>
-            <p>Sheet tab · BOM priced in NGN</p>
+            <p>
+              Realtime IEEE BOM · syncs Quotation tab · {formatNaira(quote.total)}
+            </p>
           </div>
 
           <div className="tt-only-mobile tt-mobile-cards">

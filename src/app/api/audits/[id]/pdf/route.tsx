@@ -40,10 +40,10 @@ export async function GET(_req: Request, { params }: Params) {
     try {
       quote = JSON.parse(audit.quoteJson) as QuotationResult;
     } catch {
-      quote = buildQuotation(design);
+      quote = buildQuotation(design, designParams);
     }
   } else {
-    quote = buildQuotation(design);
+    quote = buildQuotation(design, designParams);
   }
 
   const buffer = await renderToBuffer(

@@ -33,6 +33,7 @@ export const APPLIANCE_DEFAULTS: ApplianceDefault[] = [
   { sheetRow: 25, name: "Soldering & Electronics Repair Bench", unitWatts: 80, defaultHours: 4.0 },
 ];
 
+/** Simultaneous demand diversity (IEEE/NEC practice) — inverter continuous load. */
 export const DEMAND_FACTOR = 0.8;
 export const SHEET_ID = process.env.GOOGLE_SHEETS_ID ?? "1I0axW4PgeZus3ZfyqOfTiUbn29T_wx2HF3ewQcrSVxg";
 export const ENERGY_AUDIT_TAB = "Energy Audit";

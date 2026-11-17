@@ -56,13 +56,14 @@ export async function getSheetHubSummary(userId: string): Promise<SheetHubSummar
   });
 
   const recent: DashboardProposal[] = audits.map((a) => {
-    const totals = computeTotals(a.rows);
+    const totals = computeTotals(a.rows, a.demandFactor);
+    const params = parseDesignParams(a.designJson);
     const live = buildLiveKpiBundle(
       totals.dailyWh,
       totals.diversifiedWatts,
-      parseDesignParams(a.designJson),
+      params,
     );
-    const quote = buildQuotation(live.results);
+    const quote = buildQuotation(live.results, params);
     return {
       id: a.id,
       clientName: a.clientName,
@@ -93,13 +94,14 @@ export async function getSheetHubSummary(userId: string): Promise<SheetHubSummar
 
   for (const a of audits) {
     if (a.sheetSyncedAt) synced += 1;
-    const totals = computeTotals(a.rows);
+    const totals = computeTotals(a.rows, a.demandFactor);
+    const params = parseDesignParams(a.designJson);
     const live = buildLiveKpiBundle(
       totals.dailyWh,
       totals.diversifiedWatts,
-      parseDesignParams(a.designJson),
+      params,
     );
-    const quote = buildQuotation(live.results);
+    const quote = buildQuotation(live.results, params);
     totalLoadW += totals.totalWatts;
     totalDailyKWh += totals.dailyKWh;
     totalArrayKwp += live.kpi.arrayCapacityKwp;
