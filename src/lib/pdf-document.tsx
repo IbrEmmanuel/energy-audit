@@ -134,7 +134,7 @@ function Header({
 }) {
   return (
     <View>
-      <Text style={styles.brand}>E-tech</Text>
+      <Text style={styles.brand}>E-TEC</Text>
       <Text style={styles.brandAccent}>Solar Engineering & Energy Solutions</Text>
       <Text style={styles.title}>{subtitle}</Text>
       {proposalNo ? <Text style={{ marginBottom: 8 }}>Proposal No: {proposalNo}</Text> : null}
@@ -190,7 +190,7 @@ export function AuditPdfDocument({ audit }: { audit: PdfAudit }) {
         </View>
 
         <Text style={styles.footer}>
-          Generated {new Date().toLocaleString()} · Confidential · E-tech Energy Audit Sheet Sync
+          Generated {new Date().toLocaleString()} · Confidential · E-TEC Energy Audit Sheet Sync
         </Text>
       </Page>
 
@@ -277,7 +277,7 @@ export function AuditPdfDocument({ audit }: { audit: PdfAudit }) {
               <Text>{v}</Text>
             </View>
           ))}
-          <Text style={styles.footer}>E-tech Solar Engineering · System Design</Text>
+          <Text style={styles.footer}>E-TEC Solar Engineering · System Design</Text>
         </Page>
       ) : null}
 
@@ -309,7 +309,7 @@ export function AuditPdfDocument({ audit }: { audit: PdfAudit }) {
             </Text>
           </View>
           <Text style={styles.footer}>
-            Prices in NGN · Valid 14 days · E-tech Solar Engineering & Energy Solutions
+            Prices in NGN · Valid 14 days · E-TEC Solar Engineering & Energy Solutions
           </Text>
         </Page>
       ) : null}

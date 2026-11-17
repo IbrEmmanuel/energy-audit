@@ -12,7 +12,7 @@ export function AppHeader({ email, actions, active }: Props) {
     <header className="tt-appbar">
       <div className="tt-appbar-left">
         <Link href="/dashboard" className="tt-brand">
-          <strong>E-tech</strong>
+          <strong>E-TEC</strong>
           <span className="tt-brand-sub">Proposal System</span>
         </Link>
         <nav className="tt-appbar-nav" aria-label="Primary">

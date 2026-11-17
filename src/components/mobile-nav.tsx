@@ -79,7 +79,7 @@ export function MobileNav({ active, showAccess = false }: Props) {
       </div>
       <p className="tt-dock-meta">
         <span className="tt-dock-pulse" aria-hidden />
-        E-tech · live
+        E-TEC · live
       </p>
     </nav>
   );

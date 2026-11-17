@@ -4,6 +4,7 @@ import { auth } from "@/auth";
 import { getLiveActivityFeed } from "@/lib/activity";
 import { SignInButton } from "@/components/sign-in-button";
 import { LoginLiveActivity } from "@/components/login-live-activity";
+import { BrandLogo } from "@/components/brand-logo";
 
 export const dynamic = "force-dynamic";
 
@@ -58,8 +59,11 @@ export default async function LoginPage({ searchParams }: Props) {
       <div className="tt-login-frame tt-login-frame-split">
         <div className="tt-login-panel">
           <p className="tt-login-kicker">Staff access</p>
-          <h1 className="tt-login-brand">E-tech</h1>
-          <p className="tt-login-line">Solar engineering proposals</p>
+          <h1 className="tt-login-brand-wrap">
+            <span className="sr-only">E-TEC</span>
+            <BrandLogo variant="login" priority />
+          </h1>
+          <p className="tt-login-line">Electrical · Solar · Automation · Energy</p>
 
           {errorMessage ? (
             <div className="tt-alert tt-alert-on-dark" role="alert">

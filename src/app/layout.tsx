@@ -18,12 +18,22 @@ const plexMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "E-tech | Proposal System",
+  title: "E-TEC | Proposal System",
   description:
-    "E-tech solar proposal system — energy audit, system design, quotation, Google Sheets sync, PDF export",
+    "E-TEC solar proposal system — energy audit, system design, quotation, Google Sheets sync, PDF export",
+  applicationName: "E-TEC",
+  icons: {
+    icon: [
+      { url: "/brand/icon-32.png", sizes: "32x32", type: "image/png" },
+      { url: "/brand/icon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/brand/icon-512.png", sizes: "512x512", type: "image/png" },
+    ],
+    apple: [{ url: "/brand/icon-180.png", sizes: "180x180", type: "image/png" }],
+    shortcut: ["/brand/icon-32.png"],
+  },
   appleWebApp: {
     capable: true,
-    title: "E-tech",
+    title: "E-TEC",
     statusBarStyle: "black-translucent",
   },
   formatDetection: {

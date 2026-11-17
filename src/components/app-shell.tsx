@@ -2,6 +2,7 @@ import Link from "next/link";
 import { SignOutButton } from "@/components/sign-out-button";
 import { CreateAuditButton } from "@/components/create-audit-button";
 import { MobileNav } from "@/components/mobile-nav";
+import { BrandLogo } from "@/components/brand-logo";
 
 export type ShellActive =
   | "dashboard"
@@ -49,9 +50,8 @@ export function AppShell({
   return (
     <div className="tt-app" data-shell="rockart">
       <aside className="tt-sidebar" aria-label="Main menu">
-        <Link href="/dashboard" className="tt-sidebar-brand">
-          <span className="tt-sidebar-mark" aria-hidden />
-          <strong>E-tech</strong>
+        <Link href="/dashboard" className="tt-sidebar-brand" aria-label="E-TEC home">
+          <BrandLogo variant="sidebar" />
         </Link>
 
         <div className="tt-sidebar-section">
@@ -143,9 +143,8 @@ export function AppShell({
 
       <div className="tt-app-main">
         <header className="tt-topbar">
-          <div className="tt-topbar-brand-mobile">
-            <span className="tt-sidebar-mark" aria-hidden />
-            <strong>E-tech</strong>
+          <div className="tt-topbar-brand-mobile" aria-label="E-TEC">
+            <BrandLogo variant="topbar" />
           </div>
           <div className="tt-topbar-actions">
             <span className="tt-desktop-only-inline">
