@@ -190,6 +190,60 @@ export function DashboardView({
         </ul>
       </section>
 
+      <section className="tt-surface overflow-hidden">
+        <div className="tt-panel-head">
+          <h2>Logins by email</h2>
+          <p>
+            {stats.loginsByEmail.length} account
+            {stats.loginsByEmail.length === 1 ? "" : "s"} in range
+          </p>
+        </div>
+        {stats.loginsByEmail.length === 0 ? (
+          <p className="tt-empty-inline">No logins in this range.</p>
+        ) : (
+          <>
+            <div className="tt-only-desktop">
+              <table className="tt-list-table">
+                <thead>
+                  <tr>
+                    <th>Email</th>
+                    <th>Logins</th>
+                    <th>Last login</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {stats.loginsByEmail.map((row) => (
+                    <tr key={row.email}>
+                      <td className="font-semibold text-[var(--navy)] break-all">
+                        {row.email}
+                      </td>
+                      <td className="tt-num">{row.loginCount}</td>
+                      <td className="text-[0.78rem] text-[var(--muted)]">
+                        {row.lastLoginAt ? formatWhen(row.lastLoginAt) : "—"}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <ul className="tt-only-mobile tt-activity-list">
+              {stats.loginsByEmail.map((row) => (
+                <li key={row.email}>
+                  <div>
+                    <p className="title break-all">{row.email}</p>
+                    <p className="meta">
+                      {row.loginCount} login{row.loginCount === 1 ? "" : "s"}
+                      {row.lastLoginAt ? ` · ${formatWhen(row.lastLoginAt)}` : ""}
+                    </p>
+                  </div>
+                  <strong className="tt-num">{row.loginCount}</strong>
+                </li>
+              ))}
+            </ul>
+          </>
+        )}
+      </section>
+
       <div className="tt-dash-split">
         <section className="tt-surface overflow-hidden">
           <div className="tt-panel-head">

@@ -66,6 +66,12 @@ function eachDay(start: Date, end: Date) {
   return days;
 }
 
+export type LoginCountByEmail = {
+  email: string;
+  loginCount: number;
+  lastLoginAt: string | null;
+};
+
 export type DashboardStats = {
   range: DateRangeKey;
   start: string;
@@ -76,6 +82,7 @@ export type DashboardStats = {
   proposalsCreated: number;
   sheetSyncs: number;
   pdfExports: number;
+  loginsByEmail: LoginCountByEmail[];
   flow: { date: string; logins: number; activities: number }[];
   recent: {
     id: string;
@@ -85,6 +92,44 @@ export type DashboardStats = {
     createdAt: string;
   }[];
 };
+
+/** Aggregate login events by email (optional date range). */
+export async function getLoginCountsByEmail(opts?: {
+  start?: Date;
+  end?: Date;
+}): Promise<Map<string, LoginCountByEmail>> {
+  const where = {
+    type: "login" as const,
+    email: { not: null },
+    ...(opts?.start || opts?.end
+      ? {
+          createdAt: {
+            ...(opts.start ? { gte: opts.start } : {}),
+            ...(opts.end ? { lte: opts.end } : {}),
+          },
+        }
+      : {}),
+  };
+
+  const grouped = await prisma.activityEvent.groupBy({
+    by: ["email"],
+    where,
+    _count: { _all: true },
+    _max: { createdAt: true },
+  });
+
+  const map = new Map<string, LoginCountByEmail>();
+  for (const row of grouped) {
+    if (!row.email) continue;
+    const email = row.email.toLowerCase();
+    map.set(email, {
+      email,
+      loginCount: row._count._all,
+      lastLoginAt: row._max.createdAt?.toISOString() ?? null,
+    });
+  }
+  return map;
+}
 
 export async function getDashboardStats(range: DateRangeKey): Promise<DashboardStats> {
   const { start, end } = rangeToDates(range);
@@ -111,6 +156,26 @@ export async function getDashboardStats(range: DateRangeKey): Promise<DashboardS
     byDay.set(key, bucket);
   }
 
+  const loginByEmail = new Map<string, { count: number; last: Date }>();
+  for (const e of logins) {
+    const key = (e.email || e.userId || "unknown").toLowerCase();
+    const prev = loginByEmail.get(key);
+    if (!prev) {
+      loginByEmail.set(key, { count: 1, last: e.createdAt });
+    } else {
+      prev.count += 1;
+      if (e.createdAt > prev.last) prev.last = e.createdAt;
+    }
+  }
+
+  const loginsByEmail: LoginCountByEmail[] = [...loginByEmail.entries()]
+    .map(([email, v]) => ({
+      email,
+      loginCount: v.count,
+      lastLoginAt: v.last.toISOString(),
+    }))
+    .sort((a, b) => b.loginCount - a.loginCount || a.email.localeCompare(b.email));
+
   return {
     range,
     start: start.toISOString(),
@@ -121,6 +186,7 @@ export async function getDashboardStats(range: DateRangeKey): Promise<DashboardS
     proposalsCreated: events.filter((e) => e.type === "proposal_create").length,
     sheetSyncs: events.filter((e) => e.type === "sheet_sync").length,
     pdfExports: events.filter((e) => e.type === "pdf_export").length,
+    loginsByEmail,
     flow: [...byDay.entries()].map(([date, v]) => ({ date, ...v })),
     recent: events.slice(0, 18).map((e) => ({
       id: e.id,

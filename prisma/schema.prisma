@@ -93,10 +93,14 @@ model AuditRow {
 
 /** Emails granted by master — can sign in with Google. Master is always allowed. */
 model AllowedEmail {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  grantedBy String?
-  createdAt DateTime @default(now())
+  id          String   @id @default(cuid())
+  email       String   @unique
+  companyName String?
+  phone       String?
+  address     String?
+  grantedBy   String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 /** Dashboard analytics — logins + proposal workflow activity. */
@@ -112,4 +116,5 @@ model ActivityEvent {
   @@index([createdAt])
   @@index([type, createdAt])
   @@index([userId, createdAt])
+  @@index([email, type])
 }

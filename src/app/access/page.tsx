@@ -1,7 +1,11 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { auth } from "@/auth";
-import { isMasterEmail, listGrantedEmails, MASTER_EMAIL } from "@/lib/access";
+import {
+  isMasterEmail,
+  listGrantedWithLoginStats,
+  MASTER_EMAIL,
+} from "@/lib/access";
 import { AccessManager } from "@/components/access-manager";
 import { AppHeader } from "@/components/app-header";
 import { MobileNav } from "@/components/mobile-nav";
@@ -13,7 +17,7 @@ export default async function AccessPage() {
   if (!session?.user) redirect("/login?callbackUrl=/access");
   if (!isMasterEmail(session.user.email)) redirect("/audits");
 
-  const emails = await listGrantedEmails();
+  const emails = await listGrantedWithLoginStats();
 
   return (
     <div className="tt-shell tt-shell-nav">
@@ -31,15 +35,20 @@ export default async function AccessPage() {
           </div>
         </div>
         <p className="tt-lede">
-          Grant Google emails before they can sign in. Login is public; authorization runs after
-          Google auth.
+          Grant Google access with company, phone, and address. Login counts are
+          calculated per email from live sign-in events.
         </p>
         <AccessManager
           initial={emails.map((e) => ({
             id: e.id,
             email: e.email,
+            companyName: e.companyName,
+            phone: e.phone,
+            address: e.address,
             grantedBy: e.grantedBy,
             createdAt: e.createdAt.toISOString(),
+            loginCount: e.loginCount,
+            lastLoginAt: e.lastLoginAt,
           }))}
         />
       </main>
