@@ -10,15 +10,21 @@ type Props = {
 };
 
 export default async function LoginPage({ searchParams }: Props) {
-  const session = await auth();
-  // Only bounce when we have a real user id — avoids cookie/session mismatch loops
-  if (session?.user?.id) redirect("/dashboard");
-
   const params = await searchParams;
   const callbackUrl =
     params.callbackUrl && params.callbackUrl.startsWith("/")
       ? params.callbackUrl
       : "/dashboard";
+
+  // Never auto-bounce when an auth error is present (breaks cookie mismatch loops)
+  if (!params.error) {
+    try {
+      const session = await auth();
+      if (session?.user?.id) redirect(callbackUrl);
+    } catch {
+      // Corrupt/partial session cookies — stay on login
+    }
+  }
 
   const errorMessage =
     params.error === "AccessDenied"

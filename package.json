@@ -9,7 +9,8 @@
     "lint": "eslint",
     "postinstall": "prisma generate",
     "db:push": "prisma db push",
-    "test:calc": "node scripts/test-calc.mjs"
+    "test:calc": "node scripts/test-calc.mjs",
+    "test:prod": "node scripts/test-production-stack.mjs"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.11.3",

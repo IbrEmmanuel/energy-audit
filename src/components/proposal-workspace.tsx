@@ -135,7 +135,7 @@ export function ProposalWorkspace({
         setStatus("saved");
         setMessage(
           syncSheet
-            ? "Synced Energy Audit + System Design KPIs"
+            ? "Synced Energy Audit + Design + Quotation (IEEE live formulas)"
             : "Saved live KPIs",
         );
       } catch (e) {
