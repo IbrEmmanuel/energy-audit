@@ -277,7 +277,7 @@ export function ProposalWorkspace({
               return (
                 <article key={row.id} className="tt-mobile-card tt-audit-card">
                   <h4 className="tt-mobile-card-title">{row.name}</h4>
-                  <div className="tt-field-grid">
+                  <div className="tt-field-grid tt-audit-fields">
                     <label>
                       Qty
                       <input

@@ -188,7 +188,7 @@ export function AccessManager({ initial }: { initial: Granted[] }) {
             onChange={(e) => setField("email", e.target.value)}
           />
         </label>
-        <div className="tt-field-grid" style={{ gridTemplateColumns: "1fr 1fr" }}>
+        <div className="tt-field-grid tt-field-grid-2 tt-access-fields">
           <label>
             Company name
             <input

@@ -21,6 +21,8 @@
   --page-x: clamp(0.85rem, 2.2vw, 1.35rem);
   --radius: 4px;
   --header-h: 3.25rem;
+  --topbar-h: 3.6rem;
+  --dock-h: 5.6rem;
 }
 
 @theme inline {
@@ -348,7 +350,7 @@ a {
   margin-bottom: 0.85rem;
   background: var(--bg);
   position: sticky;
-  top: calc(var(--header-h) + var(--safe-top));
+  top: calc(var(--topbar-h, var(--header-h)) + var(--safe-top));
   z-index: 30;
 }
 
@@ -614,34 +616,43 @@ a {
 .tt-mobile-cards {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.65rem;
 }
 
 .tt-mobile-card {
   background: #fff;
   border: 1px solid var(--line);
-  border-radius: var(--radius);
-  padding: 0.75rem 0.85rem;
+  border-radius: 0.85rem;
+  padding: 0.9rem 0.95rem;
 }
 
 .tt-mobile-card-title {
   font-weight: 650;
   color: var(--navy);
-  margin-bottom: 0.55rem;
-  font-size: 0.875rem;
+  margin-bottom: 0.65rem;
+  font-size: 0.92rem;
+  line-height: 1.25;
 }
 
 .tt-field-grid {
   display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.55rem;
+}
+
+.tt-field-grid-2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.tt-field-grid-3 {
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.4rem;
 }
 
 .tt-field-grid label {
   display: flex;
   flex-direction: column;
-  gap: 0.2rem;
-  font-size: 0.65rem;
+  gap: 0.28rem;
+  font-size: 0.7rem;
   font-weight: 650;
   text-transform: uppercase;
   letter-spacing: 0.03em;
@@ -650,7 +661,8 @@ a {
 
 .tt-field-grid .tt-input {
   font-family: var(--font-mono);
-  font-size: 0.85rem;
+  font-size: 1rem;
+  min-height: 2.75rem;
   text-transform: none;
   letter-spacing: normal;
   color: var(--ink);
@@ -1601,7 +1613,7 @@ a {
   word-break: break-word;
 }
 
-@media (max-width: 767.98px) {
+@media (max-width: 959.98px) {
   .tt-only-desktop {
     display: none !important;
   }
@@ -1623,7 +1635,7 @@ a {
   }
 
   .tt-shell-nav {
-    padding-bottom: calc(5.35rem + var(--safe-bottom));
+    padding-bottom: calc(var(--dock-h) + var(--safe-bottom));
   }
 
   .tt-shell-nav .tt-page {
@@ -1639,7 +1651,7 @@ a {
     display: flex;
     flex-direction: column;
     gap: 0.28rem;
-    padding: 0.45rem 0.65rem calc(0.4rem + var(--safe-bottom));
+    padding: 0.5rem 0.7rem calc(0.45rem + var(--safe-bottom));
     background:
       linear-gradient(180deg, rgba(16, 32, 51, 0.96) 0%, #0c1826 100%);
     border-top: 1px solid rgba(201, 149, 18, 0.35);
@@ -1682,10 +1694,10 @@ a {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 0.2rem;
-    min-height: 2.75rem;
-    padding: 0.3rem 0.2rem;
-    border-radius: var(--radius);
+    gap: 0.22rem;
+    min-height: 3.1rem;
+    padding: 0.4rem 0.25rem;
+    border-radius: 0.7rem;
     color: rgba(243, 245, 247, 0.55);
     text-decoration: none;
     -webkit-tap-highlight-color: transparent;
@@ -1715,7 +1727,7 @@ a {
 
   .tt-dock-label {
     font-family: var(--font-mono);
-    font-size: 0.62rem;
+    font-size: 0.68rem;
     font-weight: 600;
     letter-spacing: 0.08em;
     text-transform: uppercase;
@@ -1728,14 +1740,14 @@ a {
   }
 
   .tt-dock-create .tt-create-btn {
-    min-width: 3.4rem;
-    min-height: 2.45rem;
-    padding: 0.3rem 0.5rem;
-    font-size: 0.72rem;
+    min-width: 3.6rem;
+    min-height: 2.85rem;
+    padding: 0.4rem 0.55rem;
+    font-size: 0.78rem;
     font-family: var(--font-mono);
     letter-spacing: 0.04em;
     text-transform: uppercase;
-    border-radius: var(--radius);
+    border-radius: 0.65rem;
     box-shadow: 0 0 0 1px rgba(201, 149, 18, 0.35);
   }
 
@@ -1812,36 +1824,100 @@ a {
   }
 
   .tt-tabs {
-    top: calc(var(--header-h) + var(--safe-top) - 0.15rem);
+    top: calc(var(--topbar-h) + var(--safe-top));
     margin-inline: calc(var(--page-x) * -1);
     padding-inline: var(--page-x);
     width: calc(100% + (var(--page-x) * 2));
+    gap: 0.25rem;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .tt-tabs::-webkit-scrollbar {
+    display: none;
   }
 
   .tt-tab {
     flex: 1 1 0;
+    min-width: 4.6rem;
+    min-height: 2.75rem;
     text-align: center;
-    padding-inline: 0.55rem;
-    font-size: 0.74rem;
+    padding: 0.55rem 0.45rem;
+    font-size: 0.78rem;
   }
 
   .tt-footer-bar {
-    bottom: calc(5.1rem + var(--safe-bottom));
+    bottom: calc(var(--dock-h) + var(--safe-bottom));
     margin-inline: 0;
+    flex-wrap: wrap;
+    gap: 0.55rem;
   }
 
   .tt-footer-bar .totals {
     width: 100%;
-    font-size: 0.74rem;
+    font-size: 0.78rem;
   }
 
   .tt-footer-bar .tt-btn {
     width: 100%;
+    min-height: 2.85rem;
   }
 
   .tt-field-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 0.35rem;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.55rem;
+  }
+
+  .tt-audit-fields label:nth-child(3) {
+    grid-column: 1 / -1;
+  }
+
+  .tt-access-fields {
+    grid-template-columns: 1fr;
+  }
+
+  .tt-dash-hero {
+    align-items: flex-start;
+  }
+
+  .tt-dash-hero-actions {
+    width: 100%;
+  }
+
+  .tt-dash-hero-actions .tt-btn,
+  .tt-dash-hero-actions a {
+    flex: 1 1 auto;
+  }
+
+  .tt-metric-cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.55rem;
+  }
+
+  .tt-metric-card {
+    padding: 0.85rem;
+  }
+
+  .tt-metric-card strong {
+    font-size: 1.1rem;
+  }
+
+  .tt-card-head {
+    flex-direction: column;
+  }
+
+  .tt-box {
+    padding: 0.9rem;
+  }
+
+  .tt-section-head p {
+    font-size: 0.78rem;
+  }
+
+  .tt-input {
+    min-height: 2.85rem;
+    font-size: 1rem;
   }
 
   .tt-kpi-cell .value {
@@ -1885,7 +1961,20 @@ a {
   }
 
   .tt-btn {
-    min-height: 2.4rem;
+    min-height: 2.85rem;
+    padding-inline: 0.9rem;
+  }
+
+  .tt-btn-delete,
+  .tt-btn-danger {
+    min-height: 2.6rem;
+    font-size: 0.8rem;
+  }
+
+  .tt-range-tab {
+    min-height: 2.5rem;
+    padding: 0.45rem 0.15rem;
+    font-size: 0.9rem;
   }
 
   .tt-signout {
@@ -1919,7 +2008,7 @@ a {
   }
 }
 
-@media (min-width: 768px) {
+@media (min-width: 960px) {
   .tt-only-mobile {
     display: none !important;
   }
@@ -1930,6 +2019,15 @@ a {
 
   .tt-appbar-nav {
     display: flex;
+  }
+
+  .tt-field-grid-3,
+  .tt-field-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .tt-access-fields {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .tt-input {
@@ -2152,7 +2250,36 @@ a {
 }
 
 .tt-app[data-shell="rockart"] .tt-page {
-  padding-bottom: calc(1.5rem + var(--safe-bottom) + 5.2rem);
+  padding-bottom: calc(1.5rem + var(--safe-bottom) + var(--dock-h));
+}
+
+.tt-app[data-shell="rockart"] .tt-mobile-card {
+  background: #14171c;
+  border-color: #232830;
+}
+
+.tt-app[data-shell="rockart"] .tt-mobile-card-title,
+.tt-app[data-shell="rockart"] .tt-mobile-meta strong {
+  color: #fff;
+}
+
+.tt-app[data-shell="rockart"] .tt-field-grid label {
+  color: #8b94a1;
+}
+
+.tt-app[data-shell="rockart"] .tt-tabs {
+  background: rgba(11, 13, 16, 0.94);
+  border-bottom-color: #1c2128;
+  backdrop-filter: blur(10px);
+}
+
+.tt-app[data-shell="rockart"] .tt-tab {
+  color: #8b94a1;
+}
+
+.tt-app[data-shell="rockart"] .tt-tab[data-active="true"] {
+  color: #ff8a2a;
+  border-bottom-color: #ff6b00;
 }
 
 .tt-dash-clean {
