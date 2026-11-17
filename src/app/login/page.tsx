@@ -19,10 +19,16 @@ export default async function LoginPage({ searchParams }: Props) {
       ? params.callbackUrl
       : "/dashboard";
 
-  const denied =
-    params.error === "AccessDenied" ||
-    params.error === "Configuration" ||
-    params.error === "OAuthAccountNotLinked";
+  const errorMessage =
+    params.error === "AccessDenied"
+      ? "Access denied. Ask the master account to grant your Google email first."
+      : params.error === "Configuration"
+        ? "Auth is misconfigured on the server. Set AUTH_SECRET, AUTH_URL, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, and DATABASE_URL in Vercel, then redeploy."
+        : params.error === "OAuthAccountNotLinked"
+          ? "This Google account could not be linked. Sign in with the same Google email used before."
+          : params.error
+            ? `Sign-in failed (${params.error}). Try again.`
+            : null;
 
   return (
     <main className="tt-login">
@@ -44,9 +50,9 @@ export default async function LoginPage({ searchParams }: Props) {
           <h1 className="tt-login-brand">E-tech</h1>
           <p className="tt-login-line">Solar engineering proposals</p>
 
-          {denied ? (
+          {errorMessage ? (
             <div className="tt-alert tt-alert-on-dark" role="alert">
-              Access denied. Ask the master account to grant your Google email first.
+              {errorMessage}
             </div>
           ) : null}
 
