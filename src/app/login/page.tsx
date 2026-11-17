@@ -5,6 +5,11 @@ import { SignInButton } from "@/components/sign-in-button";
 import { BrandLogo } from "@/components/brand-logo";
 import { InstallApp } from "@/components/install-app";
 import { LoginSessionSync } from "@/components/login-session-sync";
+import {
+  LoginHotkey,
+  LoginParallax,
+  LoginPremiumHud,
+} from "@/components/login-premium";
 import { MASTER_EMAIL } from "@/lib/access";
 
 export const dynamic = "force-dynamic";
@@ -43,6 +48,8 @@ export default async function LoginPage({ searchParams }: Props) {
   return (
     <main className="tt-login">
       <LoginSessionSync callbackUrl={callbackUrl} />
+      <LoginParallax />
+
       <div className="tt-login-stage" aria-hidden>
         <Image
           src="/images/hero-solar-v2.jpg"
@@ -53,14 +60,15 @@ export default async function LoginPage({ searchParams }: Props) {
           className="tt-login-photo"
         />
         <div className="tt-login-shade" />
+        <div className="tt-login-grid" />
       </div>
 
       <section className="tt-login-center">
         <BrandLogo variant="login" priority />
-        <p className="tt-login-kicker">Proposal system</p>
+        <p className="tt-login-kicker">Secure staff gate</p>
         <h1 className="tt-login-title">Sign in to continue</h1>
         <p className="tt-login-line">
-          Staff workspace for energy audits, system design, quotations, and sheet sync.
+          Live proposal workspace — IEEE sizing, sheet sync, and PDF export for E-TEC field staff.
         </p>
 
         {errorMessage ? (
@@ -71,11 +79,13 @@ export default async function LoginPage({ searchParams }: Props) {
 
         <div className="tt-login-actions">
           <SignInButton variant="premium" callbackUrl={callbackUrl} />
+          <LoginHotkey />
           <p className="tt-login-foot">
-            Use {MASTER_EMAIL} on this phone · other accounts need Access grant
+            Authorized Google only · master {MASTER_EMAIL}
           </p>
         </div>
 
+        <LoginPremiumHud />
         <InstallApp variant="login" />
       </section>
     </main>
