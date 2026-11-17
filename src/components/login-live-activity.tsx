@@ -23,10 +23,10 @@ function formatWhen(iso: string) {
   const d = new Date(iso);
   const diff = Date.now() - d.getTime();
   const mins = Math.floor(diff / 60000);
-  if (mins < 1) return "just now";
-  if (mins < 60) return `${mins}m ago`;
+  if (mins < 1) return "now";
+  if (mins < 60) return `${mins}m`;
   const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `${hrs}h ago`;
+  if (hrs < 24) return `${hrs}h`;
   return d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
 }
 
@@ -53,22 +53,22 @@ export function LoginLiveActivity({ initial }: { initial: Feed }) {
   }, []);
 
   return (
-    <aside className="tt-login-live" aria-live="polite">
-      <div className="tt-login-live-head">
-        <span className="tt-login-live-pulse" aria-hidden />
-        <div>
-          <strong>Live dashboard activity</strong>
-          <p>
-            {feed.loginsToday} login{feed.loginsToday === 1 ? "" : "s"} today ·{" "}
-            {feed.activitiesToday} event{feed.activitiesToday === 1 ? "" : "s"}
-          </p>
+    <aside className="tt-login-ops" aria-live="polite">
+      <div className="tt-login-ops-head">
+        <div className="tt-login-ops-title">
+          <span className="tt-login-ops-live">Live</span>
+          <strong>Operations</strong>
         </div>
+        <p>
+          {feed.loginsToday} sign-ins · {feed.activitiesToday} events today
+        </p>
       </div>
+
       {feed.recent.length === 0 ? (
-        <p className="tt-login-live-empty">Waiting for live events…</p>
+        <p className="tt-login-ops-empty">No events yet today.</p>
       ) : (
-        <ul className="tt-login-live-list">
-          {feed.recent.slice(0, 8).map((e) => (
+        <ul className="tt-login-ops-list">
+          {feed.recent.slice(0, 7).map((e) => (
             <li key={e.id}>
               <div>
                 <p className="title">{e.label || activityLabel(e.type)}</p>

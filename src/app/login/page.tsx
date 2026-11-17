@@ -19,7 +19,6 @@ export default async function LoginPage({ searchParams }: Props) {
       ? params.callbackUrl
       : "/dashboard";
 
-  // Never auto-bounce when an auth error is present (breaks cookie mismatch loops)
   if (!params.error) {
     try {
       const session = await auth();
@@ -44,26 +43,17 @@ export default async function LoginPage({ searchParams }: Props) {
 
   return (
     <main className="tt-login">
-      <div className="tt-login-media" aria-hidden>
-        <Image
-          src="/images/hero-solar-v2.jpg"
-          alt=""
-          fill
-          priority
-          sizes="100vw"
-          className="tt-login-photo"
-        />
-        <div className="tt-login-shade" />
-      </div>
+      <section className="tt-login-rail">
+        <header className="tt-login-rail-top">
+          <BrandLogo variant="login" priority />
+        </header>
 
-      <div className="tt-login-frame tt-login-frame-split">
-        <div className="tt-login-panel">
-          <p className="tt-login-kicker">Staff access</p>
-          <h1 className="tt-login-brand-wrap">
-            <span className="sr-only">E-TEC</span>
-            <BrandLogo variant="login" priority />
-          </h1>
-          <p className="tt-login-line">Electrical · Solar · Automation · Energy</p>
+        <div className="tt-login-rail-body">
+          <p className="tt-login-kicker">Proposal system</p>
+          <h1 className="tt-login-title">Sign in to continue</h1>
+          <p className="tt-login-line">
+            Staff workspace for energy audits, system design, quotations, and sheet sync.
+          </p>
 
           {errorMessage ? (
             <div className="tt-alert tt-alert-on-dark" role="alert">
@@ -72,10 +62,8 @@ export default async function LoginPage({ searchParams }: Props) {
           ) : null}
 
           <div className="tt-login-actions">
-            <SignInButton callbackUrl={callbackUrl} />
-            <p className="tt-login-foot">
-              Authorized Google accounts only · sign-in tracks live dashboard activity
-            </p>
+            <SignInButton variant="premium" callbackUrl={callbackUrl} />
+            <p className="tt-login-foot">Google accounts granted by the master only</p>
             <a className="tt-login-reset" href="/login/reset">
               Clear login cookies
             </a>
@@ -83,7 +71,23 @@ export default async function LoginPage({ searchParams }: Props) {
         </div>
 
         <LoginLiveActivity initial={live} />
-      </div>
+      </section>
+
+      <aside className="tt-login-stage" aria-hidden>
+        <Image
+          src="/images/hero-solar-v2.jpg"
+          alt=""
+          fill
+          priority
+          sizes="(max-width: 960px) 100vw, 62vw"
+          className="tt-login-photo"
+        />
+        <div className="tt-login-shade" />
+        <div className="tt-login-stage-caption">
+          <span>E-TEC</span>
+          <span>Electrical · Solar · Automation · Energy</span>
+        </div>
+      </aside>
     </main>
   );
 }
