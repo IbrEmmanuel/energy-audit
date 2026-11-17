@@ -917,6 +917,86 @@ a {
   color: rgba(243, 239, 230, 0.48);
 }
 
+.tt-install {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  padding: 0.85rem 0.9rem;
+  border: 1px solid rgba(196, 163, 90, 0.28);
+  background: rgba(12, 17, 22, 0.78);
+  color: #f3efe6;
+}
+
+.tt-install-login {
+  margin-top: 0.85rem;
+  max-width: 20rem;
+  border-radius: 0.7rem;
+  text-align: left;
+}
+
+.tt-install-dock {
+  display: none;
+}
+
+.tt-install-copy strong {
+  display: block;
+  font-size: 0.82rem;
+  font-weight: 650;
+  color: #fff;
+}
+
+.tt-install-copy p {
+  margin: 0.25rem 0 0;
+  font-size: 0.72rem;
+  line-height: 1.4;
+  color: rgba(243, 239, 230, 0.58);
+}
+
+.tt-install-ios {
+  color: rgba(196, 163, 90, 0.95) !important;
+}
+
+.tt-install-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.tt-install-btn,
+.tt-install-dismiss {
+  min-height: 2.5rem;
+  border-radius: 0.5rem;
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 650;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.tt-install-btn {
+  flex: 1 1 auto;
+  border: 0;
+  background: #c4a35a;
+  color: #0c1116;
+  padding: 0.55rem 0.8rem;
+}
+
+.tt-install-dismiss {
+  border: 1px solid rgba(243, 239, 230, 0.18);
+  background: transparent;
+  color: rgba(243, 239, 230, 0.7);
+  padding: 0.55rem 0.7rem;
+}
+
+@media (max-width: 900px) {
+  .tt-install-dock {
+    display: flex;
+    margin: 0 0.65rem 0.45rem;
+    border-radius: 0.75rem;
+  }
+}
+
 .tt-btn-google {
   display: inline-flex;
   align-items: center;
@@ -1005,6 +1085,27 @@ a {
 
   .tt-login-center {
     gap: 0.6rem;
+    width: min(100%, 22.5rem);
+  }
+
+  .tt-login-title {
+    font-size: clamp(1.7rem, 7vw, 2.1rem);
+  }
+
+  .tt-login-line {
+    font-size: 0.88rem;
+    max-width: 19rem;
+  }
+
+  .tt-login-actions,
+  .tt-install-login {
+    width: min(100%, 100%);
+    max-width: none;
+  }
+
+  .tt-btn-google {
+    min-height: 3rem;
+    font-size: 0.95rem;
   }
 }
 

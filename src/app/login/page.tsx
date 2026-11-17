@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { SignInButton } from "@/components/sign-in-button";
 import { BrandLogo } from "@/components/brand-logo";
+import { InstallApp } from "@/components/install-app";
 
 export const dynamic = "force-dynamic";
 
@@ -69,6 +70,8 @@ export default async function LoginPage({ searchParams }: Props) {
           <SignInButton variant="premium" callbackUrl={callbackUrl} />
           <p className="tt-login-foot">Google accounts granted by the master only</p>
         </div>
+
+        <InstallApp variant="login" />
       </section>
     </main>
   );

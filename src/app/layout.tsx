@@ -22,6 +22,7 @@ export const metadata: Metadata = {
   description:
     "E-TEC solar proposal system — energy audit, system design, quotation, Google Sheets sync, PDF export",
   applicationName: "E-TEC",
+  manifest: "/manifest.webmanifest",
   icons: {
     icon: [
       { url: "/brand/icon-32.png", sizes: "32x32", type: "image/png" },
@@ -36,6 +37,9 @@ export const metadata: Metadata = {
     title: "E-TEC",
     statusBarStyle: "black-translucent",
   },
+  other: {
+    "mobile-web-app-capable": "yes",
+  },
   formatDetection: {
     telephone: false,
   },
@@ -46,10 +50,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 5,
   viewportFit: "cover",
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#0b0d10" },
-    { media: "(prefers-color-scheme: dark)", color: "#0b0d10" },
-  ],
+  themeColor: "#0b0d10",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

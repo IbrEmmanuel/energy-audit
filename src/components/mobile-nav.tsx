@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { CreateAuditButton } from "@/components/create-audit-button";
+import { InstallApp } from "@/components/install-app";
 
 type Props = {
   active?: "dashboard" | "audits" | "access";
@@ -77,6 +78,7 @@ export function MobileNav({ active, showAccess = false }: Props) {
           </Link>
         ) : null}
       </div>
+      <InstallApp variant="dock" />
       <p className="tt-dock-meta">
         <span className="tt-dock-pulse" aria-hidden />
         E-TEC · live
