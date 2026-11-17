@@ -62,20 +62,36 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           scope:
             "openid email profile https://www.googleapis.com/auth/spreadsheets",
           access_type: "offline",
-          prompt: "consent",
+          // Let phone users pick the master Gmail (not a different signed-in account)
+          prompt: "select_account consent",
         },
       },
     }),
   ],
   session: { strategy: "jwt" },
+  cookies: {
+    sessionToken: {
+      name:
+        process.env.NODE_ENV === "production"
+          ? "__Secure-authjs.session-token"
+          : "authjs.session-token",
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
+      },
+    },
+  },
   pages: {
     signIn: "/login",
     error: "/login",
   },
   callbacks: {
-    async signIn({ user }) {
+    async signIn({ user, profile }) {
+      const email = user.email ?? (profile as { email?: string } | undefined)?.email;
       // Universal login page — only master + granted emails may proceed
-      return isEmailAllowed(user.email);
+      return isEmailAllowed(email);
     },
     async jwt({ token, user, account }) {
       if (user?.id) token.userId = user.id;

@@ -25,7 +25,21 @@ export function SignInButton({
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ phase: "start" }),
         }).catch(() => undefined);
-        void signIn("google", { callbackUrl });
+
+        // Absolute callback keeps Android PWA / Chrome Custom Tabs on the same origin
+        const origin = window.location.origin;
+        const next =
+          callbackUrl.startsWith("http")
+            ? callbackUrl
+            : `${origin}${callbackUrl.startsWith("/") ? callbackUrl : `/${callbackUrl}`}`;
+
+        void signIn("google", {
+          callbackUrl: next,
+          redirect: true,
+        }).finally(() => {
+          // If redirect is blocked, allow retry
+          window.setTimeout(() => setBusy(false), 4000);
+        });
       }}
       className={variant === "premium" ? "tt-btn-google tt-btn-google-premium" : "tt-btn-google"}
     >

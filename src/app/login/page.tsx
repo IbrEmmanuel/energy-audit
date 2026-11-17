@@ -4,6 +4,8 @@ import { auth } from "@/auth";
 import { SignInButton } from "@/components/sign-in-button";
 import { BrandLogo } from "@/components/brand-logo";
 import { InstallApp } from "@/components/install-app";
+import { LoginSessionSync } from "@/components/login-session-sync";
+import { MASTER_EMAIL } from "@/lib/access";
 
 export const dynamic = "force-dynamic";
 
@@ -29,7 +31,7 @@ export default async function LoginPage({ searchParams }: Props) {
 
   const errorMessage =
     params.error === "AccessDenied"
-      ? "Access denied. Ask the master account to grant your Google email first."
+      ? `Access denied. On your phone, choose the master Google account (${MASTER_EMAIL}) — other Gmail accounts cannot sign in until granted.`
       : params.error === "Configuration"
         ? "Auth is misconfigured on the server. Set AUTH_SECRET, AUTH_URL, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, and DATABASE_URL in Vercel, then redeploy."
         : params.error === "OAuthAccountNotLinked"
@@ -40,6 +42,7 @@ export default async function LoginPage({ searchParams }: Props) {
 
   return (
     <main className="tt-login">
+      <LoginSessionSync callbackUrl={callbackUrl} />
       <div className="tt-login-stage" aria-hidden>
         <Image
           src="/images/hero-solar-v2.jpg"
@@ -68,7 +71,9 @@ export default async function LoginPage({ searchParams }: Props) {
 
         <div className="tt-login-actions">
           <SignInButton variant="premium" callbackUrl={callbackUrl} />
-          <p className="tt-login-foot">Google accounts granted by the master only</p>
+          <p className="tt-login-foot">
+            Use {MASTER_EMAIL} on this phone · other accounts need Access grant
+          </p>
         </div>
 
         <InstallApp variant="login" />

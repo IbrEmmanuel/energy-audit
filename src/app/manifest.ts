@@ -6,7 +6,7 @@ export default function manifest(): MetadataRoute.Manifest {
     short_name: "E-TEC",
     description:
       "E-TEC staff app for energy audits, system design, quotations, Google Sheets sync, and PDF export.",
-    start_url: "/dashboard",
+    start_url: "/login",
     scope: "/",
     display: "standalone",
     orientation: "portrait-primary",
