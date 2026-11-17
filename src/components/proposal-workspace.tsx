@@ -215,10 +215,10 @@ export function ProposalWorkspace({
       </nav>
 
       {step === "client" && (
-        <section className="tt-box space-y-3">
+        <section className="tt-box space-y-3 tt-sheet-panel">
           <div className="tt-section-head">
             <h2>Client & site</h2>
-            <p>Stored with the proposal record</p>
+            <p>TOPTECH proposal record · feeds Energy Audit sheet</p>
           </div>
           <div className="grid gap-3 sm:grid-cols-2">
             <label>
@@ -434,19 +434,19 @@ export function ProposalWorkspace({
       )}
 
       {step === "design" && (
-        <section className="space-y-3">
+        <section className="space-y-3 tt-design-sheet">
           <div className="tt-section-head">
             <h2>System Design & Sizing</h2>
             <p>
-              IEEE 1562 / 1013 · sheet B17:B26 + KPI cards are live formulas
+              TOPTECH theme · IEEE 1562 / 1013 · live sheet formulas B17:B26 + KPI cards
             </p>
           </div>
 
-          <p className="mb-2 text-[0.72rem] font-semibold uppercase tracking-[0.04em] text-[var(--muted)]">
-            {kpi.standardLabel} · live KPI
+          <p className="tt-sheet-banner">
+            {kpi.standardLabel} · live KPI · synced to System Design tab
           </p>
 
-          <div className="tt-kpi-strip" data-live="true">
+          <div className="tt-kpi-strip tt-design-kpi" data-live="true">
             <Kpi
               label="Daily energy demand"
               value={formatKpiKWh(kpi.dailyEnergyKWh)}
@@ -480,7 +480,7 @@ export function ProposalWorkspace({
           </div>
 
           <div className="tt-split">
-            <div className="tt-box">
+            <div className="tt-box tt-sheet-panel">
               <h3>Design parameters</h3>
               <div className="grid gap-2.5 sm:grid-cols-2">
                 <label>
@@ -542,8 +542,8 @@ export function ProposalWorkspace({
               </div>
             </div>
 
-            <div className="tt-box">
-              <h3>Calculated values</h3>
+            <div className="tt-box tt-sheet-panel tt-design-results">
+              <h3>Calculated values · IEEE</h3>
               <Result line="Daily energy" value={formatWh(designResults.dailyWh)} />
               <Result
                 line="With inverter losses"
@@ -577,18 +577,18 @@ export function ProposalWorkspace({
       )}
 
       {step === "quote" && (
-        <section>
+        <section className="tt-quote-sheet">
           <div className="tt-section-head">
             <h2>Quotation</h2>
             <p>
-              Realtime IEEE BOM · Quotation qty/totals are live sheet formulas ·{" "}
+              TOPTECH theme · realtime IEEE BOM · live sheet qty/totals ·{" "}
               {formatNaira(quote.total)}
             </p>
           </div>
 
           <div className="tt-only-mobile tt-mobile-cards">
             {quote.lines.map((l) => (
-              <article key={l.sku} className="tt-mobile-card">
+              <article key={l.sku} className="tt-mobile-card tt-quote-card">
                 <h4 className="tt-mobile-card-title">{l.description}</h4>
                 <p className="mb-2 text-[0.72rem] text-[var(--muted)]">{l.sku}</p>
                 <div className="tt-mobile-meta">
@@ -606,15 +606,15 @@ export function ProposalWorkspace({
             ))}
           </div>
 
-          <div className="tt-only-desktop tt-table-wrap">
-            <table className="tt-table">
+          <div className="tt-only-desktop tt-table-wrap tt-quote-table-wrap">
+            <table className="tt-table tt-quote-table">
               <thead>
                 <tr>
-                  <th>Item</th>
-                  <th>Qty</th>
+                  <th>SKU / Item</th>
+                  <th>Qty (live)</th>
                   <th>Unit</th>
                   <th>Unit price</th>
-                  <th>Amount</th>
+                  <th>Line total</th>
                 </tr>
               </thead>
               <tbody>
@@ -622,27 +622,44 @@ export function ProposalWorkspace({
                   <tr key={l.sku}>
                     <td>
                       <div className="font-medium">{l.description}</div>
-                      <div className="text-[0.72rem] text-[var(--muted)]">{l.sku}</div>
+                      <div className="text-[0.72rem] opacity-70">{l.sku}</div>
                     </td>
-                    <td className="tt-num">{l.quantity}</td>
+                    <td className="tt-num tt-quote-live">{l.quantity}</td>
                     <td>{l.unit}</td>
                     <td className="tt-num">{formatNaira(l.unitPrice)}</td>
-                    <td className="tt-num font-semibold">
+                    <td className="tt-num tt-quote-live font-semibold">
                       {formatNaira(l.quantity * l.unitPrice)}
                     </td>
                   </tr>
                 ))}
               </tbody>
+              <tfoot>
+                <tr>
+                  <td colSpan={4}>Subtotal</td>
+                  <td className="tt-num">{formatNaira(quote.subtotal)}</td>
+                </tr>
+                <tr>
+                  <td colSpan={4}>Installation (12%)</td>
+                  <td className="tt-num">{formatNaira(quote.installation)}</td>
+                </tr>
+                <tr>
+                  <td colSpan={4}>Contingency (5%)</td>
+                  <td className="tt-num">{formatNaira(quote.contingency)}</td>
+                </tr>
+                <tr>
+                  <td colSpan={4}>TOTAL</td>
+                  <td className="tt-num">{formatNaira(quote.total)}</td>
+                </tr>
+              </tfoot>
             </table>
           </div>
 
-          <div className="tt-box mt-3">
-            <Result line="Subtotal" value={formatNaira(quote.subtotal)} />
-            <Result line="Installation (12%)" value={formatNaira(quote.installation)} />
-            <Result line="Contingency (5%)" value={formatNaira(quote.contingency)} />
-            <p className="pt-3 text-[1.05rem] font-bold text-[var(--navy)]">
-              Grand total{" "}
-              <span className="tt-num">{formatNaira(quote.total)}</span>
+          <div className="tt-box mt-3 tt-sheet-panel tt-quote-total">
+            <p className="tt-quote-grand">
+              Grand total <span className="tt-num">{formatNaira(quote.total)}</span>
+            </p>
+            <p className="tt-quote-note">
+              IEEE Std 1562 / 1013 · quantities follow System Design live cells
             </p>
             <div className="tt-btn-row pt-3">
               <button type="button" className="tt-btn tt-btn-navy" onClick={() => void save(true)}>

@@ -32,14 +32,19 @@ export type SheetRowWrite = {
   dailyHours: number;
 };
 
-/** TOPTECH Energy Audit theme — matches live workbook header styling. */
-export const ENERGY_AUDIT_THEME = {
+/** TOPTECH workbook theme — shared across Energy Audit / Design / Quotation. */
+export const TOPTECH_THEME = {
   headerBg: { red: 0.086, green: 0.353, blue: 0.447 }, // #165A72
   headerFg: { red: 1, green: 1, blue: 1 },
   totalsBg: { red: 0.051, green: 0.22, blue: 0.282 }, // #0D3848
-  formulaBg: { red: 0.93, green: 0.96, blue: 0.97 }, // soft teal for computed cols
+  formulaBg: { red: 0.93, green: 0.96, blue: 0.97 },
   bandBg: { red: 0.95, green: 0.97, blue: 0.98 },
+  accentBg: { red: 0.12, green: 0.42, blue: 0.52 },
+  labelBg: { red: 0.9, green: 0.94, blue: 0.96 },
 };
+
+/** @deprecated use TOPTECH_THEME */
+export const ENERGY_AUDIT_THEME = TOPTECH_THEME;
 
 function sheetsClient(accessToken: string) {
   const auth = new google.auth.OAuth2();
@@ -65,7 +70,7 @@ export async function applyEnergyAuditTheme(accessToken: string) {
   const sheetId = await getSheetGid(sheets, ENERGY_AUDIT_TAB);
   if (sheetId == null) return { ok: false as const, reason: "tab missing" };
 
-  const t = ENERGY_AUDIT_THEME;
+  const t = TOPTECH_THEME;
   const requests: object[] = [
     {
       updateSheetProperties: {
@@ -476,7 +481,202 @@ export async function syncSystemDesignKpiToSheet(
     },
   });
 
-  return { spreadsheetId: SHEET_ID, updated: data.length };
+  await applySystemDesignTheme(accessToken);
+
+  return { spreadsheetId: SHEET_ID, updated: data.length, themed: true };
+}
+
+/** TOPTECH theme for System Design & Sizing tab. */
+export async function applySystemDesignTheme(accessToken: string) {
+  const sheets = sheetsClient(accessToken);
+  const sheetId = await getSheetGid(sheets, SYSTEM_DESIGN_TAB);
+  if (sheetId == null) return { ok: false as const, reason: "tab missing" };
+
+  const t = TOPTECH_THEME;
+  const requests: object[] = [
+    {
+      updateSheetProperties: {
+        properties: {
+          sheetId,
+          gridProperties: { frozenRowCount: 1 },
+        },
+        fields: "gridProperties.frozenRowCount",
+      },
+    },
+    // Title / standard banner
+    {
+      repeatCell: {
+        range: {
+          sheetId,
+          startRowIndex: 0,
+          endRowIndex: 1,
+          startColumnIndex: 0,
+          endColumnIndex: 9,
+        },
+        cell: {
+          userEnteredFormat: {
+            backgroundColor: t.headerBg,
+            textFormat: {
+              foregroundColor: t.headerFg,
+              bold: true,
+              fontSize: 11,
+            },
+          },
+        },
+        fields: "userEnteredFormat(backgroundColor,textFormat)",
+      },
+    },
+    // Param labels A2:A16
+    {
+      repeatCell: {
+        range: {
+          sheetId,
+          startRowIndex: 1,
+          endRowIndex: 16,
+          startColumnIndex: 0,
+          endColumnIndex: 1,
+        },
+        cell: {
+          userEnteredFormat: {
+            backgroundColor: t.labelBg,
+            textFormat: { bold: true, fontSize: 9 },
+          },
+        },
+        fields: "userEnteredFormat(backgroundColor,textFormat)",
+      },
+    },
+    // Sizing labels A17:A26
+    {
+      repeatCell: {
+        range: {
+          sheetId,
+          startRowIndex: 16,
+          endRowIndex: 26,
+          startColumnIndex: 0,
+          endColumnIndex: 1,
+        },
+        cell: {
+          userEnteredFormat: {
+            backgroundColor: t.headerBg,
+            textFormat: {
+              foregroundColor: t.headerFg,
+              bold: true,
+              fontSize: 9,
+            },
+          },
+        },
+        fields: "userEnteredFormat(backgroundColor,textFormat)",
+      },
+    },
+    // Live formula values B17:B26
+    {
+      repeatCell: {
+        range: {
+          sheetId,
+          startRowIndex: 16,
+          endRowIndex: 26,
+          startColumnIndex: 1,
+          endColumnIndex: 2,
+        },
+        cell: {
+          userEnteredFormat: {
+            backgroundColor: t.formulaBg,
+            textFormat: { bold: true },
+          },
+        },
+        fields: "userEnteredFormat(backgroundColor,textFormat)",
+      },
+    },
+    // KPI cards G4:I5 + G8:I9
+    {
+      repeatCell: {
+        range: {
+          sheetId,
+          startRowIndex: 3,
+          endRowIndex: 5,
+          startColumnIndex: 6,
+          endColumnIndex: 9,
+        },
+        cell: {
+          userEnteredFormat: {
+            backgroundColor: t.accentBg,
+            textFormat: {
+              foregroundColor: t.headerFg,
+              bold: true,
+            },
+            horizontalAlignment: "CENTER",
+          },
+        },
+        fields:
+          "userEnteredFormat(backgroundColor,textFormat,horizontalAlignment)",
+      },
+    },
+    {
+      repeatCell: {
+        range: {
+          sheetId,
+          startRowIndex: 7,
+          endRowIndex: 9,
+          startColumnIndex: 6,
+          endColumnIndex: 9,
+        },
+        cell: {
+          userEnteredFormat: {
+            backgroundColor: t.accentBg,
+            textFormat: {
+              foregroundColor: t.headerFg,
+              bold: true,
+            },
+            horizontalAlignment: "CENTER",
+          },
+        },
+        fields:
+          "userEnteredFormat(backgroundColor,textFormat,horizontalAlignment)",
+      },
+    },
+    // Status line
+    {
+      repeatCell: {
+        range: {
+          sheetId,
+          startRowIndex: 11,
+          endRowIndex: 12,
+          startColumnIndex: 6,
+          endColumnIndex: 9,
+        },
+        cell: {
+          userEnteredFormat: {
+            backgroundColor: t.totalsBg,
+            textFormat: {
+              foregroundColor: t.headerFg,
+              italic: true,
+              fontSize: 9,
+            },
+          },
+        },
+        fields: "userEnteredFormat(backgroundColor,textFormat)",
+      },
+    },
+    ...[200, 140, 100, 100, 100, 100, 160, 160, 160].map((pixelSize, i) => ({
+      updateDimensionProperties: {
+        range: {
+          sheetId,
+          dimension: "COLUMNS",
+          startIndex: i,
+          endIndex: i + 1,
+        },
+        properties: { pixelSize },
+        fields: "pixelSize",
+      },
+    })),
+  ];
+
+  await sheets.spreadsheets.batchUpdate({
+    spreadsheetId: SHEET_ID,
+    requestBody: { requests },
+  });
+
+  return { ok: true as const, sheetId };
 }
 
 /**
@@ -526,7 +726,184 @@ export async function syncQuotationToSheet(
     requestBody: { values },
   });
 
-  return { spreadsheetId: SHEET_ID, lines: layout.lines.length };
+  await applyQuotationTheme(accessToken);
+
+  return { spreadsheetId: SHEET_ID, lines: layout.lines.length, themed: true };
+}
+
+/** TOPTECH theme for Quotation BOM tab. */
+export async function applyQuotationTheme(accessToken: string) {
+  const sheets = sheetsClient(accessToken);
+  const sheetId = await getSheetGid(sheets, QUOTATION_TAB);
+  if (sheetId == null) return { ok: false as const, reason: "tab missing" };
+
+  const t = TOPTECH_THEME;
+  const requests: object[] = [
+    {
+      updateSheetProperties: {
+        properties: {
+          sheetId,
+          gridProperties: { frozenRowCount: 1 },
+        },
+        fields: "gridProperties.frozenRowCount",
+      },
+    },
+    // Header
+    {
+      repeatCell: {
+        range: {
+          sheetId,
+          startRowIndex: 0,
+          endRowIndex: 1,
+          startColumnIndex: 0,
+          endColumnIndex: 6,
+        },
+        cell: {
+          userEnteredFormat: {
+            backgroundColor: t.headerBg,
+            textFormat: {
+              foregroundColor: t.headerFg,
+              bold: true,
+              fontSize: 10,
+            },
+            horizontalAlignment: "CENTER",
+          },
+        },
+        fields:
+          "userEnteredFormat(backgroundColor,textFormat,horizontalAlignment)",
+      },
+    },
+    // Live qty + line total columns
+    {
+      repeatCell: {
+        range: {
+          sheetId,
+          startRowIndex: 1,
+          endRowIndex: 11,
+          startColumnIndex: 3,
+          endColumnIndex: 4,
+        },
+        cell: {
+          userEnteredFormat: { backgroundColor: t.formulaBg },
+        },
+        fields: "userEnteredFormat.backgroundColor",
+      },
+    },
+    {
+      repeatCell: {
+        range: {
+          sheetId,
+          startRowIndex: 1,
+          endRowIndex: 11,
+          startColumnIndex: 5,
+          endColumnIndex: 6,
+        },
+        cell: {
+          userEnteredFormat: {
+            backgroundColor: t.formulaBg,
+            numberFormat: { type: "NUMBER", pattern: "₦#,##0" },
+            textFormat: { bold: true },
+          },
+        },
+        fields: "userEnteredFormat(backgroundColor,numberFormat,textFormat)",
+      },
+    },
+    // Unit price
+    {
+      repeatCell: {
+        range: {
+          sheetId,
+          startRowIndex: 1,
+          endRowIndex: 11,
+          startColumnIndex: 4,
+          endColumnIndex: 5,
+        },
+        cell: {
+          userEnteredFormat: {
+            numberFormat: { type: "NUMBER", pattern: "₦#,##0" },
+          },
+        },
+        fields: "userEnteredFormat.numberFormat",
+      },
+    },
+    // Footer totals (rows 12–15 → 0-index 11–14)
+    {
+      repeatCell: {
+        range: {
+          sheetId,
+          startRowIndex: 11,
+          endRowIndex: 15,
+          startColumnIndex: 0,
+          endColumnIndex: 6,
+        },
+        cell: {
+          userEnteredFormat: {
+            backgroundColor: t.totalsBg,
+            textFormat: {
+              foregroundColor: t.headerFg,
+              bold: true,
+            },
+          },
+        },
+        fields: "userEnteredFormat(backgroundColor,textFormat)",
+      },
+    },
+    {
+      repeatCell: {
+        range: {
+          sheetId,
+          startRowIndex: 11,
+          endRowIndex: 15,
+          startColumnIndex: 5,
+          endColumnIndex: 6,
+        },
+        cell: {
+          userEnteredFormat: {
+            numberFormat: { type: "NUMBER", pattern: "₦#,##0" },
+          },
+        },
+        fields: "userEnteredFormat.numberFormat",
+      },
+    },
+    // IEEE note row
+    {
+      repeatCell: {
+        range: {
+          sheetId,
+          startRowIndex: 16,
+          endRowIndex: 17,
+          startColumnIndex: 0,
+          endColumnIndex: 6,
+        },
+        cell: {
+          userEnteredFormat: {
+            backgroundColor: t.labelBg,
+            textFormat: { italic: true, fontSize: 9 },
+          },
+        },
+        fields: "userEnteredFormat(backgroundColor,textFormat)",
+      },
+    },
+    ...[90, 320, 56, 72, 110, 120].map((pixelSize, i) => ({
+      updateDimensionProperties: {
+        range: {
+          sheetId,
+          dimension: "COLUMNS",
+          startIndex: i,
+          endIndex: i + 1,
+        },
+        properties: { pixelSize },
+        fields: "pixelSize",
+      },
+    })),
+  ];
+
+  await sheets.spreadsheets.batchUpdate({
+    spreadsheetId: SHEET_ID,
+    requestBody: { requests },
+  });
+
+  return { ok: true as const, sheetId };
 }
 
 export async function readEnergyAuditQuantities(accessToken: string) {

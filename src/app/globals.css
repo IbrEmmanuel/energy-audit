@@ -2365,3 +2365,127 @@ a {
 .tt-app[data-shell="rockart"] .tt-audit-footer {
   background: #0d1418;
 }
+
+/* —— TOPTECH theme · Design + Quotation pages —— */
+.tt-sheet-banner {
+  margin: 0 0 0.75rem;
+  padding: 0.55rem 0.85rem;
+  border-radius: 0.55rem;
+  background: #165a72;
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.tt-sheet-panel {
+  border-color: #1a5f72 !important;
+  border-radius: 0.75rem;
+}
+
+.tt-sheet-panel h3 {
+  color: #9fd4e6;
+}
+
+.tt-design-kpi {
+  border-color: #1a5f72;
+  border-radius: 0.75rem;
+  background: #0f161a;
+}
+
+.tt-design-kpi .tt-kpi-cell {
+  border-color: #1a5f72;
+  background: #0f161a;
+}
+
+.tt-design-kpi .tt-kpi-cell .label {
+  color: #7eb6c9;
+}
+
+.tt-design-kpi .tt-kpi-cell .value {
+  color: #fff;
+}
+
+.tt-design-kpi .tt-kpi-cell .detail {
+  color: #8aa3ad;
+}
+
+.tt-design-results .tt-result span:last-child {
+  color: #9fd4e6;
+}
+
+.tt-quote-table-wrap {
+  border-color: #1a5f72;
+  border-radius: 0.65rem;
+  overflow: auto;
+}
+
+.tt-quote-table {
+  min-width: 720px;
+}
+
+.tt-quote-table thead th {
+  background: #165a72;
+  color: #fff;
+  border-bottom: 0;
+  font-size: 0.68rem;
+  letter-spacing: 0.04em;
+}
+
+.tt-quote-table tbody td {
+  border-bottom-color: #243038;
+}
+
+.tt-quote-table .tt-quote-live {
+  background: rgba(22, 90, 114, 0.2) !important;
+  color: #9fd4e6;
+  font-weight: 650;
+}
+
+.tt-quote-table tfoot td {
+  background: #0d3848;
+  color: #fff;
+  font-weight: 650;
+  border-bottom: 1px solid #1a5f72;
+  padding: 0.55rem;
+}
+
+.tt-quote-card {
+  border-color: #1a5f72;
+  border-left: 3px solid #165a72;
+}
+
+.tt-quote-total {
+  background: linear-gradient(180deg, #121a1e, #0d1418);
+}
+
+.tt-quote-grand {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.tt-quote-grand .tt-num {
+  color: #9fd4e6;
+}
+
+.tt-quote-note {
+  margin: 0.35rem 0 0;
+  font-size: 0.72rem;
+  color: #8aa3ad;
+}
+
+.tt-app[data-shell="rockart"] .tt-quote-table-wrap,
+.tt-app[data-shell="rockart"] .tt-quote-table,
+.tt-app[data-shell="rockart"] .tt-design-kpi {
+  background: #0f161a;
+  border-color: #1a5f72;
+}
+
+.tt-app[data-shell="rockart"] .tt-quote-table thead th,
+.tt-app[data-shell="rockart"] .tt-sheet-banner {
+  background: #165a72;
+  color: #fff;
+}

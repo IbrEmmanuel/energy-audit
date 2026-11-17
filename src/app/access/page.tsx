@@ -37,6 +37,7 @@ export default async function AccessPage() {
           <p className="tt-toolbar-break">Master: {MASTER_EMAIL}</p>
         </div>
       </div>
+      <p className="tt-sheet-banner">TOPTECH access · email · company · phone · address</p>
       <p className="tt-lede">
         Grant Google access with company, phone, and address. Login counts are
         calculated per email from live sign-in events.
