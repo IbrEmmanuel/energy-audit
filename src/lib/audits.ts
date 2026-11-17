@@ -98,7 +98,13 @@ export async function getOwnedAudit(id: string, userId: string) {
 export async function syncAuditToSheets(opts: {
   accessToken: string | undefined;
   auditId: string;
-  rows: { sheetRow: number; quantity: number; unitWatts: number; dailyHours: number }[];
+  rows: {
+    sheetRow: number;
+    name?: string;
+    quantity: number;
+    unitWatts: number;
+    dailyHours: number;
+  }[];
   designJson?: string | null;
 }) {
   const { accessToken, auditId, rows, designJson } = opts;
@@ -123,13 +129,18 @@ export async function syncAuditToSheets(opts: {
     await syncEnergyAuditToSheet(
       accessToken,
       rows.filter((r) => r.sheetRow >= 2 && r.sheetRow <= 25),
+      demandFactor,
     );
     await syncSystemDesignKpiToSheet(accessToken, {
       params: kpi.params,
       results: kpi.results,
       kpi: kpi.kpi,
     });
-    await syncQuotationToSheet(accessToken, quote);
+    await syncQuotationToSheet(accessToken, quote, {
+      panelWatts: kpi.params.panelWatts,
+      systemVoltage: kpi.params.systemVoltage,
+      batteryAh: kpi.params.batteryAh,
+    });
 
     await prisma.audit.update({
       where: { id: auditId },

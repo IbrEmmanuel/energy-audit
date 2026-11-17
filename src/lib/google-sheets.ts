@@ -7,15 +7,26 @@ import {
 } from "./appliances";
 import {
   DESIGN_STANDARD,
-  formatKpiSheetValues,
+  SURGE_FACTOR,
   type DesignParams,
   type DesignResults,
   type DesignKpi,
 } from "./design";
-import { formatNaira, type QuotationResult } from "./quotation";
+import { CATALOG_PRICES, type QuotationResult } from "./quotation";
+import {
+  AUDIT_DATA_END,
+  AUDIT_DATA_START,
+  AUDIT_TOTAL_ROW,
+  energyAuditRowFormulas,
+  energyAuditTotalsAndDiversity,
+  quotationIeeeLayout,
+  systemDesignIeeeFormulas,
+  systemDesignKpiFormulas,
+} from "./sheet-formulas";
 
 export type SheetRowWrite = {
   sheetRow: number;
+  name?: string;
   quantity: number;
   unitWatts: number;
   dailyHours: number;
@@ -27,17 +38,86 @@ function sheetsClient(accessToken: string) {
   return google.sheets({ version: "v4", auth });
 }
 
-/** Writes only B/C/D — leaves E/F/G formulas intact (verified live: E = B*C). */
+/**
+ * Energy Audit — write inputs + live IEEE load formulas (E/F/G) and totals.
+ * E = B×C connected W · F = E×D daily Wh · G = F/1000 kWh
+ */
 export async function syncEnergyAuditToSheet(
   accessToken: string,
   rows: SheetRowWrite[],
+  demandFactor = 0.8,
 ) {
   const sheets = sheetsClient(accessToken);
-  const sorted = [...rows].sort((a, b) => a.sheetRow - b.sheetRow);
-  const data = sorted.map((r) => ({
-    range: `'${ENERGY_AUDIT_TAB}'!B${r.sheetRow}:D${r.sheetRow}`,
-    values: [[r.quantity, r.unitWatts, r.dailyHours]],
-  }));
+  const sorted = [...rows]
+    .filter((r) => r.sheetRow >= AUDIT_DATA_START && r.sheetRow <= AUDIT_DATA_END)
+    .sort((a, b) => a.sheetRow - b.sheetRow);
+
+  const meta = energyAuditTotalsAndDiversity(demandFactor);
+  const data: { range: string; values: (string | number)[][] }[] = [
+    {
+      range: `'${ENERGY_AUDIT_TAB}'!A1:J1`,
+      values: [meta.header],
+    },
+    {
+      range: `'${ENERGY_AUDIT_TAB}'!H2`,
+      values: [[demandFactor]],
+    },
+    {
+      range: `'${ENERGY_AUDIT_TAB}'!I2`,
+      values: [[meta.diversifiedW]],
+    },
+    {
+      range: `'${ENERGY_AUDIT_TAB}'!J2`,
+      values: [[meta.note]],
+    },
+  ];
+
+  for (const r of sorted) {
+    const f = energyAuditRowFormulas(r.sheetRow);
+    data.push({
+      range: `'${ENERGY_AUDIT_TAB}'!A${r.sheetRow}:G${r.sheetRow}`,
+      values: [
+        [
+          r.name ?? "",
+          r.quantity,
+          r.unitWatts,
+          r.dailyHours,
+          f.watts,
+          f.dailyWh,
+          f.dailyKWh,
+        ],
+      ],
+    });
+  }
+
+  // Ensure every template row 2–25 has formulas even if qty not in payload
+  for (let row = AUDIT_DATA_START; row <= AUDIT_DATA_END; row++) {
+    if (sorted.some((r) => r.sheetRow === row)) continue;
+    const f = energyAuditRowFormulas(row);
+    data.push({
+      range: `'${ENERGY_AUDIT_TAB}'!E${row}:G${row}`,
+      values: [[f.watts, f.dailyWh, f.dailyKWh]],
+    });
+  }
+
+  data.push({
+    range: `'${ENERGY_AUDIT_TAB}'!A${AUDIT_TOTAL_ROW}:G${AUDIT_TOTAL_ROW}`,
+    values: [
+      [
+        meta.totalsLabel,
+        "",
+        "",
+        "",
+        meta.sumWatts,
+        meta.sumWh,
+        meta.sumKWh,
+      ],
+    ],
+  });
+  data.push({
+    range: `'${ENERGY_AUDIT_TAB}'!H${AUDIT_TOTAL_ROW}:I${AUDIT_TOTAL_ROW}`,
+    values: [["DF→", meta.diversifiedWh]],
+  });
 
   await sheets.spreadsheets.values.batchUpdate({
     spreadsheetId: SHEET_ID,
@@ -51,8 +131,8 @@ export async function syncEnergyAuditToSheet(
 }
 
 /**
- * Live System Design sync — params (B2:B14), calculated sizing (B17:B26),
- * and KPI cards (G4:I5, G8:I9, G12) matching the live workbook layout.
+ * System Design — numeric IEEE params + live formulas for B17:B26 and KPI cards.
+ * Results from the app are not pasted; the sheet recalculates from Energy Audit.
  */
 export async function syncSystemDesignKpiToSheet(
   accessToken: string,
@@ -63,22 +143,15 @@ export async function syncSystemDesignKpiToSheet(
   },
 ) {
   const sheets = sheetsClient(accessToken);
-  const { params, results, kpi } = payload;
-  const cards = formatKpiSheetValues(kpi);
-
-  const pct = (n: number) => `${(n * 100).toFixed(1)}%`;
-  const wh = (n: number) => `${Math.round(n).toLocaleString("en-US")} Wh`;
-  const ah = (n: number) => `${Math.round(n)} Ah`;
-  const kw = (n: number) => `${n.toFixed(1)} kW`;
-  const kva = (n: number) => `${n.toFixed(1)} kVA`;
-  const kwh = (n: number) =>
-    `${n % 1 === 0 ? n.toFixed(0) : n.toFixed(1)} kWh`;
-  const wp = (n: number) => `${Math.round(n).toLocaleString("en-US")} Wp`;
-
-  const status = `Architecture: ${params.systemMode} | Bus: ${params.systemVoltage}V DC | PSH: ${params.peakSunHours} | ${DESIGN_STANDARD} | Live verified`;
+  const { params } = payload;
+  const sizing = systemDesignIeeeFormulas();
+  const cards = systemDesignKpiFormulas();
 
   const data = [
-    // Design parameters (Engineering Value column)
+    {
+      range: `'${SYSTEM_DESIGN_TAB}'!A1`,
+      values: [[`${DESIGN_STANDARD} — live formulas`]],
+    },
     {
       range: `'${SYSTEM_DESIGN_TAB}'!B2`,
       values: [[`${params.systemMode} Solar System`]],
@@ -88,38 +161,58 @@ export async function syncSystemDesignKpiToSheet(
     { range: `'${SYSTEM_DESIGN_TAB}'!B5`, values: [[params.peakSunHours]] },
     { range: `'${SYSTEM_DESIGN_TAB}'!B6`, values: [[params.daysAutonomy]] },
     { range: `'${SYSTEM_DESIGN_TAB}'!B7`, values: [[params.batteryType]] },
-    { range: `'${SYSTEM_DESIGN_TAB}'!B8`, values: [[pct(params.depthOfDischarge)]] },
-    {
-      range: `'${SYSTEM_DESIGN_TAB}'!B9`,
-      values: [[pct(params.inverterEfficiency)]],
-    },
-    {
-      range: `'${SYSTEM_DESIGN_TAB}'!B10`,
-      values: [[pct(params.chargeEfficiency)]],
-    },
-    { range: `'${SYSTEM_DESIGN_TAB}'!B11`, values: [[pct(params.mpptEfficiency)]] },
-    { range: `'${SYSTEM_DESIGN_TAB}'!B12`, values: [[pct(params.deratingFactor)]] },
+    // Decimal efficiencies so sheet formulas can multiply (not "80%" text)
+    { range: `'${SYSTEM_DESIGN_TAB}'!B8`, values: [[params.depthOfDischarge]] },
+    { range: `'${SYSTEM_DESIGN_TAB}'!B9`, values: [[params.inverterEfficiency]] },
+    { range: `'${SYSTEM_DESIGN_TAB}'!B10`, values: [[params.chargeEfficiency]] },
+    { range: `'${SYSTEM_DESIGN_TAB}'!B11`, values: [[params.mpptEfficiency]] },
+    { range: `'${SYSTEM_DESIGN_TAB}'!B12`, values: [[params.deratingFactor]] },
     { range: `'${SYSTEM_DESIGN_TAB}'!B13`, values: [[params.panelWatts]] },
     { range: `'${SYSTEM_DESIGN_TAB}'!B14`, values: [[params.batteryAh]] },
+    {
+      range: `'${SYSTEM_DESIGN_TAB}'!B15`,
+      values: [[params.batteryTempFactor ?? 1]],
+    },
+    { range: `'${SYSTEM_DESIGN_TAB}'!B16`, values: [[SURGE_FACTOR]] },
 
-    // Component sizing — live calculated values
+    // Live IEEE sizing block
     {
       range: `'${SYSTEM_DESIGN_TAB}'!B17:B26`,
       values: [
-        [wh(results.dailyWh)],
-        [wh(results.energyWithInverterLossWh)],
-        [wh(results.grossBatteryWh)],
-        [ah(results.requiredBatteryAh)],
-        [`${results.batteryUnits} Units`],
-        [kwh(kpi.batteryStorageKWh)],
-        [kw(kpi.inverterContinuousKw)],
-        [kva(kpi.inverterSurgeKva)],
-        [wp(results.requiredArrayWatts)],
-        [`${results.panelCount} Panels`],
+        [sizing.dailyWh],
+        [sizing.energyDc],
+        [sizing.grossBatteryWh],
+        [sizing.requiredAh],
+        [sizing.batteryUnits],
+        [sizing.storageKWh],
+        [sizing.inverterKw],
+        [sizing.inverterSurgeKva],
+        [sizing.arrayWp],
+        [sizing.panelCount],
       ],
     },
 
-    // KPI cards — top row values + details
+    // Labels for param / formula clarity
+    {
+      range: `'${SYSTEM_DESIGN_TAB}'!A15:A16`,
+      values: [["Battery temp factor f_t"], ["Surge factor"]],
+    },
+    {
+      range: `'${SYSTEM_DESIGN_TAB}'!A17:A26`,
+      values: [
+        ["Daily energy E_load (Wh)"],
+        ["DC energy E_dc = E/η_inv"],
+        ["Battery Wh (IEEE 1013/1562)"],
+        ["Required Ah"],
+        ["Battery modules"],
+        ["Installed storage kWh"],
+        ["Inverter continuous kW"],
+        ["Inverter surge kVA"],
+        ["Array Wp required"],
+        ["Panel count"],
+      ],
+    },
+
     {
       range: `'${SYSTEM_DESIGN_TAB}'!G4:I5`,
       values: [
@@ -127,7 +220,6 @@ export async function syncSystemDesignKpiToSheet(
         [cards.dailyEnergyDetail, cards.inverterDetail, cards.arrayDetail],
       ],
     },
-    // KPI cards — battery / generation
     {
       range: `'${SYSTEM_DESIGN_TAB}'!G8:I9`,
       values: [
@@ -139,8 +231,7 @@ export async function syncSystemDesignKpiToSheet(
         ],
       ],
     },
-    // Operational status line
-    { range: `'${SYSTEM_DESIGN_TAB}'!G12`, values: [[status]] },
+    { range: `'${SYSTEM_DESIGN_TAB}'!G12`, values: [[cards.status]] },
   ];
 
   await sheets.spreadsheets.values.batchUpdate({
@@ -154,48 +245,54 @@ export async function syncSystemDesignKpiToSheet(
   return { spreadsheetId: SHEET_ID, updated: data.length };
 }
 
-/** Live quotation BOM → Quotation tab (realtime IEEE design quantities). */
+/**
+ * Quotation — unit prices as values; qty + line totals + footer as live formulas
+ * tied to System Design IEEE sizing cells.
+ */
 export async function syncQuotationToSheet(
   accessToken: string,
   quote: QuotationResult,
+  params?: { panelWatts?: number; systemVoltage?: number; batteryAh?: number },
 ) {
   const sheets = sheetsClient(accessToken);
-  const header = [
-    ["SKU", "Description", "Unit", "Qty", "Unit Price (NGN)", "Line Total (NGN)"],
-  ];
-  const body = quote.lines.map((l) => [
-    l.sku,
-    l.description,
-    l.unit,
-    l.quantity,
-    l.unitPrice,
-    l.quantity * l.unitPrice,
-  ]);
-  const footer = [
-    [],
-    ["", "Subtotal", "", "", "", quote.subtotal],
-    ["", "Installation", "", "", "", quote.installation],
-    ["", "Contingency", "", "", "", quote.contingency],
-    ["", "TOTAL", "", "", "", quote.total],
-    [],
-    [
-      "",
-      `Realtime IEEE quotation · ${quote.standard} · ${quote.computedAt}`,
-      "",
-      "",
-      "",
-      formatNaira(quote.total),
-    ],
-  ];
+  const panelWatts = params?.panelWatts ?? quote.panelWatts ?? 550;
+  const systemVoltage = params?.systemVoltage ?? 48;
+  const batteryAh = params?.batteryAh ?? 100;
+  const inverterKw = Math.max(3, Math.ceil((quote.inverterMinWatts || 3000) / 1000));
+
+  const layout = quotationIeeeLayout({
+    panelUnitPrice: Math.round(CATALOG_PRICES.panelPerWp * panelWatts),
+    inverterUnitPrice: Math.round(CATALOG_PRICES.inverterPerKw * inverterKw),
+    batteryUnitPrice: CATALOG_PRICES.battery100Ah,
+    batteryRack: CATALOG_PRICES.batteryRack,
+    roofMount: CATALOG_PRICES.roofMount,
+    dcCable: CATALOG_PRICES.dcCable100m,
+    batteryCableSet: CATALOG_PRICES.batteryCable50m + CATALOG_PRICES.lugKit,
+    surgeKit: CATALOG_PRICES.surgeProtector,
+    earthKit: CATALOG_PRICES.groundingKit,
+    installationPct: CATALOG_PRICES.installationPct,
+    contingencyPct: CATALOG_PRICES.contingencyPct,
+    panelWatts,
+    systemVoltage,
+    batteryAh,
+    computedAt: quote.computedAt,
+  });
+
+  const values = [layout.header, ...layout.lines, ...layout.footer];
+
+  await sheets.spreadsheets.values.clear({
+    spreadsheetId: SHEET_ID,
+    range: `'${QUOTATION_TAB}'!A1:F40`,
+  });
 
   await sheets.spreadsheets.values.update({
     spreadsheetId: SHEET_ID,
-    range: `'${QUOTATION_TAB}'!A1:F${header.length + body.length + footer.length}`,
+    range: `'${QUOTATION_TAB}'!A1:F${values.length}`,
     valueInputOption: "USER_ENTERED",
-    requestBody: { values: [...header, ...body, ...footer] },
+    requestBody: { values },
   });
 
-  return { spreadsheetId: SHEET_ID, lines: quote.lines.length };
+  return { spreadsheetId: SHEET_ID, lines: layout.lines.length };
 }
 
 export async function readEnergyAuditQuantities(accessToken: string) {

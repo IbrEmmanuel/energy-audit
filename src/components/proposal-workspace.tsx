@@ -426,7 +426,7 @@ export function ProposalWorkspace({
           <div className="tt-section-head">
             <h2>System Design & Sizing</h2>
             <p>
-              IEEE 1562 / 1013 live sizing · syncs sheet G4:I9 + B17:B26
+              IEEE 1562 / 1013 · sheet B17:B26 + KPI cards are live formulas
             </p>
           </div>
 
@@ -569,7 +569,8 @@ export function ProposalWorkspace({
           <div className="tt-section-head">
             <h2>Quotation</h2>
             <p>
-              Realtime IEEE BOM · syncs Quotation tab · {formatNaira(quote.total)}
+              Realtime IEEE BOM · Quotation qty/totals are live sheet formulas ·{" "}
+              {formatNaira(quote.total)}
             </p>
           </div>
 
