@@ -1,9 +1,7 @@
 import Image from "next/image";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
-import { getLiveActivityFeed } from "@/lib/activity";
 import { SignInButton } from "@/components/sign-in-button";
-import { LoginLiveActivity } from "@/components/login-live-activity";
 import { BrandLogo } from "@/components/brand-logo";
 
 export const dynamic = "force-dynamic";
@@ -39,8 +37,6 @@ export default async function LoginPage({ searchParams }: Props) {
             ? `Sign-in failed (${params.error}). Try again.`
             : null;
 
-  const live = await getLiveActivityFeed(14);
-
   return (
     <main className="tt-login">
       <section className="tt-login-rail">
@@ -64,13 +60,8 @@ export default async function LoginPage({ searchParams }: Props) {
           <div className="tt-login-actions">
             <SignInButton variant="premium" callbackUrl={callbackUrl} />
             <p className="tt-login-foot">Google accounts granted by the master only</p>
-            <a className="tt-login-reset" href="/login/reset">
-              Clear login cookies
-            </a>
           </div>
         </div>
-
-        <LoginLiveActivity initial={live} />
       </section>
 
       <aside className="tt-login-stage" aria-hidden>
