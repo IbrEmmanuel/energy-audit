@@ -1819,10 +1819,13 @@ a {
   --danger: #ff6b6b;
   --sidebar-w: 15.5rem;
   min-height: 100dvh;
+  height: 100dvh;
+  max-height: 100dvh;
   display: grid;
-  grid-template-columns: var(--sidebar-w) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr);
   background: var(--bg);
   color: var(--ink);
+  overflow: hidden;
 }
 
 .tt-sidebar {
@@ -1832,10 +1835,15 @@ a {
   padding: 1.15rem 0.85rem 1.25rem;
   background: #050607;
   border-right: 1px solid #1a1d22;
-  position: sticky;
+  position: fixed;
   top: 0;
-  height: 100dvh;
-  overflow: auto;
+  left: 0;
+  bottom: 0;
+  width: var(--sidebar-w);
+  z-index: 50;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 .tt-sidebar-brand {
@@ -1945,7 +1953,12 @@ a {
   min-width: 0;
   display: flex;
   flex-direction: column;
-  min-height: 100dvh;
+  min-height: 0;
+  height: 100dvh;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
   background:
     radial-gradient(900px 420px at 80% -10%, rgba(255, 107, 0, 0.08), transparent 55%),
     #0b0d10;
@@ -2229,8 +2242,17 @@ a {
 }
 
 @media (min-width: 960px) {
+  .tt-app[data-shell="rockart"] {
+    grid-template-columns: var(--sidebar-w) minmax(0, 1fr);
+  }
+
   .tt-sidebar {
     display: flex;
+  }
+
+  .tt-app-main {
+    grid-column: 2;
+    margin-left: 0;
   }
 
   .tt-topbar-brand-mobile {
