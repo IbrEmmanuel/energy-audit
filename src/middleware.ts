@@ -13,10 +13,10 @@ export async function middleware(req: NextRequest) {
 
   if (!isProtected) return NextResponse.next();
 
-  const token = await getToken({
-    req,
-    secret: process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET,
-  });
+  const secret = process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET;
+  const token =
+    (await getToken({ req, secret, secureCookie: true })) ??
+    (await getToken({ req, secret, secureCookie: false }));
 
   if (!token) {
     if (pathname.startsWith("/api/")) {

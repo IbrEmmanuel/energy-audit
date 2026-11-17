@@ -11,7 +11,8 @@ type Props = {
 
 export default async function LoginPage({ searchParams }: Props) {
   const session = await auth();
-  if (session?.user) redirect("/dashboard");
+  // Only bounce when we have a real user id — avoids cookie/session mismatch loops
+  if (session?.user?.id) redirect("/dashboard");
 
   const params = await searchParams;
   const callbackUrl =
@@ -59,6 +60,9 @@ export default async function LoginPage({ searchParams }: Props) {
           <div className="tt-login-actions">
             <SignInButton callbackUrl={callbackUrl} />
             <p className="tt-login-foot">Authorized Google accounts only</p>
+            <a className="tt-login-reset" href="/login/reset">
+              Clear login cookies
+            </a>
           </div>
         </div>
       </div>

@@ -1,0 +1,40 @@
+import { NextResponse } from "next/server";
+
+const COOKIE_NAMES = [
+  "authjs.session-token",
+  "__Secure-authjs.session-token",
+  "authjs.callback-url",
+  "__Secure-authjs.callback-url",
+  "authjs.csrf-token",
+  "__Host-authjs.csrf-token",
+  "next-auth.session-token",
+  "__Secure-next-auth.session-token",
+  "next-auth.callback-url",
+  "__Secure-next-auth.callback-url",
+  "next-auth.csrf-token",
+  "__Host-next-auth.csrf-token",
+];
+
+export async function GET(req: Request) {
+  const url = new URL("/login", req.url);
+  const res = NextResponse.redirect(url);
+
+  for (const name of COOKIE_NAMES) {
+    res.cookies.set(name, "", {
+      httpOnly: true,
+      secure: true,
+      sameSite: "lax",
+      path: "/",
+      maxAge: 0,
+    });
+    res.cookies.set(name, "", {
+      httpOnly: true,
+      secure: false,
+      sameSite: "lax",
+      path: "/",
+      maxAge: 0,
+    });
+  }
+
+  return res;
+}

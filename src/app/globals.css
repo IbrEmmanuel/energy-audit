@@ -860,6 +860,13 @@ a {
   color: rgba(255, 255, 255, 0.48);
 }
 
+.tt-login-reset {
+  margin-top: 0.15rem;
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.42);
+  text-decoration: underline;
+}
+
 .tt-btn-google {
   display: inline-flex;
   align-items: center;
