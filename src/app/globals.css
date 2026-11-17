@@ -2280,3 +2280,88 @@ a {
     grid-template-columns: 1.4fr 1fr;
   }
 }
+
+/* —— Energy Audit · TOPTECH sheet theme (full stack) —— */
+.tt-audit-sheet .tt-section-head h2 {
+  letter-spacing: -0.02em;
+}
+
+.tt-audit-table-wrap {
+  border-color: #1a5f72;
+  border-radius: 0.65rem;
+  overflow: auto;
+  max-height: min(70vh, 42rem);
+}
+
+.tt-audit-table {
+  min-width: 860px;
+}
+
+.tt-audit-table thead th {
+  background: #165a72;
+  color: #fff;
+  border-bottom: 0;
+  font-size: 0.68rem;
+  letter-spacing: 0.04em;
+}
+
+.tt-audit-table tbody td {
+  background: transparent;
+  border-bottom-color: #243038;
+}
+
+.tt-audit-table tbody tr[data-active="true"] td {
+  background: rgba(22, 90, 114, 0.12);
+}
+
+.tt-audit-table .tt-audit-calc {
+  background: rgba(22, 90, 114, 0.18) !important;
+  color: #9fd4e6;
+  font-weight: 650;
+}
+
+.tt-audit-table .tt-audit-name {
+  font-weight: 550;
+  color: #e8eef2;
+}
+
+.tt-audit-table tfoot td {
+  background: #0d3848;
+  color: #fff;
+  font-weight: 650;
+  border-bottom: 0;
+  padding: 0.65rem 0.55rem;
+}
+
+.tt-audit-footer {
+  border-color: #1a5f72;
+  background: linear-gradient(180deg, #121a1e, #0d1418);
+}
+
+.tt-audit-card {
+  border-color: #1a5f72;
+  border-left: 3px solid #165a72;
+}
+
+.tt-audit-meta strong {
+  color: #9fd4e6;
+}
+
+.tt-app[data-shell="rockart"] .tt-audit-table-wrap,
+.tt-app[data-shell="rockart"] .tt-audit-table {
+  background: #0f161a;
+  border-color: #1a5f72;
+}
+
+.tt-app[data-shell="rockart"] .tt-audit-table thead th {
+  background: #165a72;
+  color: #fff;
+}
+
+.tt-app[data-shell="rockart"] .tt-audit-table tbody td {
+  background: #0f161a;
+}
+
+.tt-app[data-shell="rockart"] .tt-audit-footer {
+  background: #0d1418;
+}

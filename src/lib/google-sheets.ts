@@ -32,14 +32,246 @@ export type SheetRowWrite = {
   dailyHours: number;
 };
 
+/** TOPTECH Energy Audit theme — matches live workbook header styling. */
+export const ENERGY_AUDIT_THEME = {
+  headerBg: { red: 0.086, green: 0.353, blue: 0.447 }, // #165A72
+  headerFg: { red: 1, green: 1, blue: 1 },
+  totalsBg: { red: 0.051, green: 0.22, blue: 0.282 }, // #0D3848
+  formulaBg: { red: 0.93, green: 0.96, blue: 0.97 }, // soft teal for computed cols
+  bandBg: { red: 0.95, green: 0.97, blue: 0.98 },
+};
+
 function sheetsClient(accessToken: string) {
   const auth = new google.auth.OAuth2();
   auth.setCredentials({ access_token: accessToken });
   return google.sheets({ version: "v4", auth });
 }
 
+async function getSheetGid(
+  sheets: ReturnType<typeof sheetsClient>,
+  title: string,
+) {
+  const meta = await sheets.spreadsheets.get({
+    spreadsheetId: SHEET_ID,
+    fields: "sheets.properties(sheetId,title)",
+  });
+  const match = meta.data.sheets?.find((s) => s.properties?.title === title);
+  return match?.properties?.sheetId ?? null;
+}
+
+/** Apply TOPTECH teal theme + IEEE column formats on Energy Audit tab. */
+export async function applyEnergyAuditTheme(accessToken: string) {
+  const sheets = sheetsClient(accessToken);
+  const sheetId = await getSheetGid(sheets, ENERGY_AUDIT_TAB);
+  if (sheetId == null) return { ok: false as const, reason: "tab missing" };
+
+  const t = ENERGY_AUDIT_THEME;
+  const requests: object[] = [
+    {
+      updateSheetProperties: {
+        properties: {
+          sheetId,
+          gridProperties: { frozenRowCount: 1 },
+        },
+        fields: "gridProperties.frozenRowCount",
+      },
+    },
+    // Header row — TOPTECH teal
+    {
+      repeatCell: {
+        range: {
+          sheetId,
+          startRowIndex: 0,
+          endRowIndex: 1,
+          startColumnIndex: 0,
+          endColumnIndex: 10,
+        },
+        cell: {
+          userEnteredFormat: {
+            backgroundColor: t.headerBg,
+            horizontalAlignment: "CENTER",
+            verticalAlignment: "MIDDLE",
+            textFormat: {
+              foregroundColor: t.headerFg,
+              bold: true,
+              fontSize: 10,
+            },
+          },
+        },
+        fields:
+          "userEnteredFormat(backgroundColor,textFormat,horizontalAlignment,verticalAlignment)",
+      },
+    },
+    // Computed IEEE columns E–G soft teal
+    {
+      repeatCell: {
+        range: {
+          sheetId,
+          startRowIndex: 1,
+          endRowIndex: AUDIT_DATA_END,
+          startColumnIndex: 4,
+          endColumnIndex: 7,
+        },
+        cell: {
+          userEnteredFormat: {
+            backgroundColor: t.formulaBg,
+          },
+        },
+        fields: "userEnteredFormat.backgroundColor",
+      },
+    },
+    // Totals row
+    {
+      repeatCell: {
+        range: {
+          sheetId,
+          startRowIndex: AUDIT_TOTAL_ROW - 1,
+          endRowIndex: AUDIT_TOTAL_ROW,
+          startColumnIndex: 0,
+          endColumnIndex: 10,
+        },
+        cell: {
+          userEnteredFormat: {
+            backgroundColor: t.totalsBg,
+            textFormat: {
+              foregroundColor: t.headerFg,
+              bold: true,
+            },
+          },
+        },
+        fields: "userEnteredFormat(backgroundColor,textFormat)",
+      },
+    },
+    // Qty
+    {
+      repeatCell: {
+        range: {
+          sheetId,
+          startRowIndex: 1,
+          endRowIndex: AUDIT_DATA_END,
+          startColumnIndex: 1,
+          endColumnIndex: 2,
+        },
+        cell: { userEnteredFormat: { numberFormat: { type: "NUMBER", pattern: "0" } } },
+        fields: "userEnteredFormat.numberFormat",
+      },
+    },
+    // Unit W — numeric with W suffix (TOPTECH look)
+    {
+      repeatCell: {
+        range: {
+          sheetId,
+          startRowIndex: 1,
+          endRowIndex: AUDIT_DATA_END,
+          startColumnIndex: 2,
+          endColumnIndex: 3,
+        },
+        cell: {
+          userEnteredFormat: {
+            numberFormat: { type: "NUMBER", pattern: '#,##0" W"' },
+          },
+        },
+        fields: "userEnteredFormat.numberFormat",
+      },
+    },
+    // Hours
+    {
+      repeatCell: {
+        range: {
+          sheetId,
+          startRowIndex: 1,
+          endRowIndex: AUDIT_DATA_END,
+          startColumnIndex: 3,
+          endColumnIndex: 4,
+        },
+        cell: {
+          userEnteredFormat: {
+            numberFormat: { type: "NUMBER", pattern: "0.0" },
+          },
+        },
+        fields: "userEnteredFormat.numberFormat",
+      },
+    },
+    // Connected W
+    {
+      repeatCell: {
+        range: {
+          sheetId,
+          startRowIndex: 1,
+          endRowIndex: AUDIT_TOTAL_ROW,
+          startColumnIndex: 4,
+          endColumnIndex: 5,
+        },
+        cell: {
+          userEnteredFormat: {
+            numberFormat: { type: "NUMBER", pattern: '#,##0" W"' },
+          },
+        },
+        fields: "userEnteredFormat.numberFormat",
+      },
+    },
+    // Daily Wh
+    {
+      repeatCell: {
+        range: {
+          sheetId,
+          startRowIndex: 1,
+          endRowIndex: AUDIT_TOTAL_ROW,
+          startColumnIndex: 5,
+          endColumnIndex: 6,
+        },
+        cell: {
+          userEnteredFormat: {
+            numberFormat: { type: "NUMBER", pattern: '#,##0" Wh"' },
+          },
+        },
+        fields: "userEnteredFormat.numberFormat",
+      },
+    },
+    // Daily kWh
+    {
+      repeatCell: {
+        range: {
+          sheetId,
+          startRowIndex: 1,
+          endRowIndex: AUDIT_TOTAL_ROW,
+          startColumnIndex: 6,
+          endColumnIndex: 7,
+        },
+        cell: {
+          userEnteredFormat: {
+            numberFormat: { type: "NUMBER", pattern: '0.00" kWh"' },
+          },
+        },
+        fields: "userEnteredFormat.numberFormat",
+      },
+    },
+    // Column widths A–J
+    ...[220, 56, 88, 72, 110, 110, 90, 90, 110, 220].map((pixelSize, i) => ({
+      updateDimensionProperties: {
+        range: {
+          sheetId,
+          dimension: "COLUMNS",
+          startIndex: i,
+          endIndex: i + 1,
+        },
+        properties: { pixelSize },
+        fields: "pixelSize",
+      },
+    })),
+  ];
+
+  await sheets.spreadsheets.batchUpdate({
+    spreadsheetId: SHEET_ID,
+    requestBody: { requests },
+  });
+
+  return { ok: true as const, sheetId };
+}
+
 /**
- * Energy Audit — write inputs + live IEEE load formulas (E/F/G) and totals.
+ * Energy Audit — write inputs + live IEEE load formulas (E/F/G) and totals,
+ * then apply TOPTECH sheet theme (full stack values + formatting).
  * E = B×C connected W · F = E×D daily Wh · G = F/1000 kWh
  */
 export async function syncEnergyAuditToSheet(
@@ -127,7 +359,9 @@ export async function syncEnergyAuditToSheet(
     },
   });
 
-  return { spreadsheetId: SHEET_ID, updated: data.length };
+  await applyEnergyAuditTheme(accessToken);
+
+  return { spreadsheetId: SHEET_ID, updated: data.length, themed: true };
 }
 
 /**

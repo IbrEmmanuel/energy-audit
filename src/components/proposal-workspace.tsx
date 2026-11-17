@@ -262,17 +262,20 @@ export function ProposalWorkspace({
       )}
 
       {step === "audit" && (
-        <section>
+        <section className="tt-audit-sheet">
           <div className="tt-section-head">
             <h2>Energy Audit</h2>
-            <p>Sheet tab · writes Quantity / Watts / Hours (B–D)</p>
+            <p>
+              TOPTECH sheet theme · IEEE live formulas (Connected W / Daily Wh / kWh) · syncs
+              A–J
+            </p>
           </div>
 
           <div className="tt-only-mobile tt-mobile-cards">
             {proposal.rows.map((row) => {
               const c = computeRow(row);
               return (
-                <article key={row.id} className="tt-mobile-card">
+                <article key={row.id} className="tt-mobile-card tt-audit-card">
                   <h4 className="tt-mobile-card-title">{row.name}</h4>
                   <div className="tt-field-grid">
                     <label>
@@ -289,7 +292,7 @@ export function ProposalWorkspace({
                       />
                     </label>
                     <label>
-                      Watts
+                      Unit W
                       <input
                         type="number"
                         inputMode="decimal"
@@ -302,7 +305,7 @@ export function ProposalWorkspace({
                       />
                     </label>
                     <label>
-                      Hours
+                      Hours/day
                       <input
                         type="number"
                         inputMode="decimal"
@@ -317,15 +320,15 @@ export function ProposalWorkspace({
                       />
                     </label>
                   </div>
-                  <div className="tt-mobile-meta">
+                  <div className="tt-mobile-meta tt-audit-meta">
                     <span>
-                      Load <strong>{formatWatts(c.totalWatts)}</strong>
+                      Connected <strong>{formatWatts(c.totalWatts)}</strong>
                     </span>
                     <span>
-                      Wh <strong>{formatWh(c.dailyWh)}</strong>
+                      Daily <strong>{formatWh(c.dailyWh)}</strong>
                     </span>
                     <span>
-                      kWh <strong>{formatKWh(c.dailyKWh)}</strong>
+                      <strong>{formatKWh(c.dailyKWh)}</strong>
                     </span>
                   </div>
                 </article>
@@ -333,25 +336,25 @@ export function ProposalWorkspace({
             })}
           </div>
 
-          <div className="tt-only-desktop tt-table-wrap">
-            <table className="tt-table">
+          <div className="tt-only-desktop tt-table-wrap tt-audit-table-wrap">
+            <table className="tt-table tt-audit-table">
               <thead>
                 <tr>
-                  <th>Appliance</th>
+                  <th>Appliance / Load</th>
                   <th>Qty</th>
-                  <th>Unit (W)</th>
-                  <th>Hours</th>
-                  <th>Load (W)</th>
-                  <th>Wh</th>
-                  <th>kWh</th>
+                  <th>Unit W</th>
+                  <th>Hours/day</th>
+                  <th>Connected W</th>
+                  <th>Daily Wh</th>
+                  <th>Daily kWh</th>
                 </tr>
               </thead>
               <tbody>
                 {proposal.rows.map((row) => {
                   const c = computeRow(row);
                   return (
-                    <tr key={row.id}>
-                      <td>{row.name}</td>
+                    <tr key={row.id} data-active={row.quantity > 0 ? "true" : "false"}>
+                      <td className="tt-audit-name">{row.name}</td>
                       <td>
                         <input
                           type="number"
@@ -387,17 +390,26 @@ export function ProposalWorkspace({
                           }
                         />
                       </td>
-                      <td className="tt-num">{formatWatts(c.totalWatts)}</td>
-                      <td className="tt-num">{formatWh(c.dailyWh)}</td>
-                      <td className="tt-num">{formatKWh(c.dailyKWh)}</td>
+                      <td className="tt-num tt-audit-calc">{formatWatts(c.totalWatts)}</td>
+                      <td className="tt-num tt-audit-calc">{formatWh(c.dailyWh)}</td>
+                      <td className="tt-num tt-audit-calc">{formatKWh(c.dailyKWh)}</td>
                     </tr>
                   );
                 })}
               </tbody>
+              <tfoot>
+                <tr>
+                  <td>IEEE LOAD TOTALS</td>
+                  <td colSpan={3} />
+                  <td className="tt-num">{formatWatts(totals.totalWatts)}</td>
+                  <td className="tt-num">{formatWh(totals.dailyWh)}</td>
+                  <td className="tt-num">{formatKWh(totals.dailyKWh)}</td>
+                </tr>
+              </tfoot>
             </table>
           </div>
 
-          <div className="tt-footer-bar">
+          <div className="tt-footer-bar tt-audit-footer">
             <div className="totals space-y-0.5">
               <p>
                 Connected{" "}
